@@ -52,8 +52,10 @@ module Soundness
       → (w' ∈ FINAccLang na₂ y) × ((inj l w , w') ∈ ∣Q∣) )
   -- proof by infuction on length of word w such as x⇝[w]x'
   -- Base case
-  lemma-for-soundness zero _ (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) with Rfinal (headF xs) y [x,y]∈R last[xs]∈F₁ | 0-length-word≡ε w
-  lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) | w'@(inj n as) , y' , y⇝[w']y'@(ys , ≡refl , tr₂ , ≡refl) , y'∈F₂ , ε∣Q∣w' | ≡refl  =
+  lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁)
+    with Rfinal (headF xs) y [x,y]∈R last[xs]∈F₁ | 0-length-word≡ε w
+  lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁)
+    | w'@(inj n as) , y' , y⇝[w']y'@(ys , ≡refl , tr₂ , ≡refl) , y'∈F₂ , ε∣Q∣w' | ≡refl  =
     (w' , (ys , ≡refl , tr₂ , y'∈F₂) , ε∣Q∣w')
   -- Step
   {- By using Step-condition, we have
@@ -74,7 +76,7 @@ module Soundness
     with Rstep (headF xs) y [x,y]∈R n xs w ≡refl trw last[xs]∈F₁
   lemma-for-soundness (suc n) rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁)
     | k , k≢0 , sk≤ssn@(s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R₁RR₂∨[k≡n∧y'∈F₂]
-    with w₁w₂≡w w k≤sn | k≢0→k<sn→sk'≡k k≢0 (s≤s k≤sn)
+    with w₁w₂≡w w k≤sn | k≢0→k<sn→sk'≡k k≢0 sk≤ssn
   lemma-for-soundness (suc n) rec (.(headF xs) , .(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
     | k@.(suc k') , k≢0 , s≤s k≤sn , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R₁RR₂∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
@@ -424,11 +426,14 @@ module Soundness
 
       -- proof of y ⇝[w'·w''] y'
       open QSimulation.Lemma.Transition X₂ A na₂ m m' ys ys' ys'0≡ys[m] w' w'' trw' trw''
-        using (tr)
       trw'w'' : (i : Fin (m + m'))
         → (ys·ys' (inject₁ i) , concat w' w'' i , ys·ys' (sucF i)) ∈ ⇝₂
       trw'w'' i = tr i
       {-
+      -- The following direct proof `trw'w''` takes too long time to be typechecked.
+      -- This is because the terms and types involved the proof is bery large.
+      trw'w'' : (i : Fin (m + m'))
+        → (ys·ys' (inject₁ i) , concat w' w'' i , ys·ys' (sucF i)) ∈ ⇝₂
       trw'w'' i with lemma-for-trans-state {m} {m'} ys ys' ys'0≡ys[m] i | lemma-for-trans-word {m} {m'} w' w'' i
       trw'w'' i | pair-of-equation | q with splitFin {m} {m'} i
       trw'w'' i | ys[i']≡ys·ys'[i] , ys[si']≡tail[ys]·ys'[i] | q | inj₁ i' =
@@ -454,6 +459,7 @@ module Soundness
           concat ys (tailF ys') (inject₁ i) , concat w' w'' i , concat (tailF ys) (tailF ys') i
           ∎)
       -}
+
 
       last[ys·ys']∈F₂ : ys·ys' (fromℕ (m + m')) ∈ F₂
       last[ys·ys']∈F₂ = step-∋ F₂ last[ys']∈F₂ (last ys ys' ys'0≡ys[m])

@@ -1,4 +1,4 @@
-module Pred where
+module Base.Pred where
 
 open import Level
   using (Level)

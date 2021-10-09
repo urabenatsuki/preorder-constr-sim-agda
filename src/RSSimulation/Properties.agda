@@ -20,14 +20,12 @@ open import Relation.Binary.PropositionalEquality
   renaming (sym to ≡sym; cong to ≡cong; cong-app to ≡cong-app)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Unary
-  using (_∈_; _∉_; _⟨⊎⟩_; ∅; Satisfiable; Universal; Empty; Pred; _⊆′_; U; ｛_｝)
+  using (_∈_; _∉_; ∅; _⊆′_; U; ｛_｝)
 open import Function.Base
-  using (id; case_of_)
-
+  using (case_of_)
 open import Relation.Nullary using (¬_)
 open import Relation.Nullary.Negation
-  using (contradiction; contraposition; ¬∃⟶∀¬)
-  
+  using (contradiction)
 open import Data.Empty
   using (⊥; ⊥-elim)
 open import Data.Unit.Base

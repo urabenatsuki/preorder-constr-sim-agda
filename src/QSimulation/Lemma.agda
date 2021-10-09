@@ -1,3 +1,5 @@
+-- Lemma for soundness
+
 module QSimulation.Lemma where
 open import Data.Nat
 open import Data.Nat.Properties

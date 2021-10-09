@@ -1,4 +1,4 @@
-module Singleton where
+module Base.Singleton where
 
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Level using (Level)

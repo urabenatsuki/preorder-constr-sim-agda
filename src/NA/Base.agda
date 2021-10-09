@@ -1,3 +1,4 @@
+-- definition of nondeterministic automata and accepted language
 module NA.Base where
 open import Level
   using (Level)
@@ -17,14 +18,13 @@ open import Relation.Binary.PropositionalEquality
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Unary
   using (_∈_; _⟨⊎⟩_; ∅)
-
 open import Data.Empty
   using (⊥)
 open import Data.Unit.Base
   using (⊤)
 
+open import Base.Pred
 open import FinForWord
-open import Pred
 open import Word
 
 

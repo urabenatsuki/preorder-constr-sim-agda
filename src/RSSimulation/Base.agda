@@ -2,36 +2,12 @@
 -- reachability-sensitive simulation between NA
 
 module RSSimulation.Base where
-open import Level
-  using (Level)
-  renaming (zero to lzero; suc to lsuc)
-open import Data.Nat
-  using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s)
-open import Data.Fin
-  using (Fin; inject₁; inject≤; inject+; cast; toℕ; fromℕ; fromℕ<)
-  renaming (zero to zeroF; suc to sucF)
-open import Data.Fin.Patterns
 open import Data.Product
   using (∃; _×_; _,_; proj₁; proj₂)
 open import Data.Sum
   using (_⊎_; inj₁; inj₂)
-open import Relation.Binary.PropositionalEquality
-  using (_≡_; refl)
-  renaming (sym to ≡sym; cong to ≡cong; cong-app to ≡cong-app)
-open Relation.Binary.PropositionalEquality.≡-Reasoning
-open import Relation.Unary
-  using (_∈_; _⟨⊎⟩_; ∅; Satisfiable; Universal; Empty; Pred)
-open import Function.Base
-  using (id; case_of_)
-
-open import Relation.Nullary using (¬_)
-open import Relation.Nullary.Negation
-  using (contradiction; contraposition; ¬∃⟶∀¬)
-  
 open import Data.Empty
   using (⊥; ⊥-elim)
-open import Data.Unit.Base
-  using (⊤; tt)
 
 open import Base
 open import Word

@@ -1,4 +1,4 @@
-module Equivalence where
+module Base.Equivalence where
 
 open import Level using (Level)
 open import Function.Base using (_∘_)

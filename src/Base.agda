@@ -1,7 +1,7 @@
 module Base where
 
-open import Pred public
+open import Base.Pred public
 
-open import Equivalence public
+open import Base.Equivalence public
 
-open import Singleton public
+open import Base.Singleton public
