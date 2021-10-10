@@ -16,7 +16,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Unary using (_∈_; _⊆_)
-open import Data.Product using (_×_; _,_; ∃; proj₁; proj₂)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 
 open import Base
@@ -38,20 +38,20 @@ module Soundness
   where
 
   lemma-for-soundness :
-    ∀ (l : ℕ)
-    → (∀ (l' : ℕ) → (l' < l)
-      → ∀ ((x , y) : X₁ × X₂)
+    (l : ℕ)
+    → ((l' : ℕ) → (l' < l)
+      → ((x , y) : X₁ × X₂)
       → (x , y) ∈ ∣R∣
-      → ∀ (w : FinWord l' A)
+      → (w : FinWord l' A)
       → (inj l' w ∈ FINAccLang na₁ x)
-      → ∃ (λ (w' : FINWord A)
-        → (w' ∈ FINAccLang na₂ y) × ((inj l' w , w') ∈ ∣Q∣) ))
-    → ∀ ((x , y) : X₁ × X₂)
+      → ∃[ w' ] -- : FINWord A
+        (w' ∈ FINAccLang na₂ y) × ((inj l' w , w') ∈ ∣Q∣))
+    → ((x , y) : X₁ × X₂)
     → (x , y) ∈ ∣R∣
-    → ∀ (w : FinWord l A)
+    → (w : FinWord l A)
     → (inj l w ∈ FINAccLang na₁ x)
-    → ∃ (λ (w' : FINWord A)
-      → (w' ∈ FINAccLang na₂ y) × ((inj l w , w') ∈ ∣Q∣) )
+    → ∃[ w' ] -- : FINWord A
+      (w' ∈ FINAccLang na₂ y) × ((inj l w , w') ∈ ∣Q∣)
   -- proof by infuction on length of word w such as x⇝[w]x'
   -- Base case
   lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁)
@@ -299,8 +299,8 @@ module Soundness
       xₖ≤[Q₁]x^ = R₁⊆[≤Q₁] [xₖ,x^]∈R₁
 
       [n^,w^,w^∈L[x^],[w₂,w^]∈Q₁,n^≤l] :
-        ∃ (λ (n^ : ℕ) → ∃ (λ (w^ : FinWord n^ A)
-          → (inj n^ w^ ∈ FINAccLang na₁ x^) × ((inj l w₂ , inj n^ w^) ∈ ∣Q₁∣) × (n^ ≤ l)))
+        ∃[ n^ ] ∃ λ (w^ : FinWord n^ A)
+          → (inj n^ w^ ∈ FINAccLang na₁ x^) × ((inj l w₂ , inj n^ w^) ∈ ∣Q₁∣) × (n^ ≤ l)
       [n^,w^,w^∈L[x^],[w₂,w^]∈Q₁,n^≤l] with xₖ≤[Q₁]x^ (inj l w₂) w₂∈L[xₖ]
       [n^,w^,w^∈L[x^],[w₂,w^]∈Q₁,n^≤l] | (n^ , w^) , w^∈L[x^] , [w₂,w^]∈Q₁ =
         (n^ , w^ , w^∈L[x^] , [w₂,w^]∈Q₁ , [w,w']∈Q₁→∣w'∣≤∣w∣ (inj l w₂) (inj n^ w^) [w₂,w^]∈Q₁)
@@ -329,8 +329,8 @@ module Soundness
       n^≤k'+l : n^ ≤ k' + l
       n^≤k'+l = ≤-trans n^≤l (a≤b+a {l} {k'})
 
-      [m^,v^,v^∈L[y^],[w^,v^]∈Q] : ∃ (λ (m^ : ℕ) → ∃ (λ (v^ : FinWord m^ A)
-          → (inj m^ v^ ∈ FINAccLang na₂ y^) × ((inj n^ w^ , inj m^ v^) ∈ ∣Q∣)))
+      [m^,v^,v^∈L[y^],[w^,v^]∈Q] : ∃[ m^ ] ∃ λ (v^ : FinWord m^ A)
+        → (inj m^ v^ ∈ FINAccLang na₂ y^) × ((inj n^ w^ , inj m^ v^) ∈ ∣Q∣)
       [m^,v^,v^∈L[y^],[w^,v^]∈Q] with rec n^ (s≤s n^≤k'+l) (x^ , y^) [x^,y^]∈R w^ w^∈L[x^]
       [m^,v^,v^∈L[y^],[w^,v^]∈Q] | (m^ , v^) , v^∈L[y^] , [w^,v^]∈Q = (m^ , v^ , v^∈L[y^] , [w^,v^]∈Q)
 
@@ -357,8 +357,8 @@ module Soundness
       y^≤[Q₂]y' = R₂⊆[≤Q₂] [y^,y']∈R₂
 
       [m',w'',w''∈L[y'],[v^,w'']∈Q₂] :
-        ∃ (λ (m' : ℕ) → ∃ (λ (w'' : FinWord m' A)
-          → (inj m' w'' ∈ FINAccLang na₂ (ys (fromℕ m))) × ((inj m^ v^ , inj m' w'') ∈ ∣Q₂∣)))
+        ∃[ m' ] ∃ λ (w'' : FinWord m' A)
+          → (inj m' w'' ∈ FINAccLang na₂ (ys (fromℕ m))) × ((inj m^ v^ , inj m' w'') ∈ ∣Q₂∣)
       [m',w'',w''∈L[y'],[v^,w'']∈Q₂] with y^≤[Q₂]y' (inj m^ v^) v^∈L[y^]
       [m',w'',w''∈L[y'],[v^,w'']∈Q₂] | (m' , w'') , w''∈L[y'] , [v^,w'']∈Q₂ = (m' , w'' , w''∈L[y'] , [v^,w'']∈Q₂)
 
@@ -480,16 +480,16 @@ module Soundness
             ∎
 
   -- Theorem[soundness] If R is [Q,R₁,R₂]-constrained-simulation-upto and (x, y) ∈ R then x ≤Q y
-  soundness : ∀ ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ → x ≤[ na₁ , na₂ , Q ] y
+  soundness : ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ → x ≤[ na₁ , na₂ , Q ] y
   soundness [x,y] [x,y]∈R (l , w) w∈L*[x] = soundness' l [x,y] [x,y]∈R w w∈L*[x]
     where
       soundness' :
-        ∀ (l : ℕ) →
-        ∀ ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ 
-        → ∀ (w : FinWord l A)
+        (l : ℕ) →
+        ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ 
+        → (w : FinWord l A)
         → (inj l w ∈ FINAccLang na₁ x)
-        → ∃ (λ (w' : FINWord A)
-          → (w' ∈ FINAccLang na₂ y) × ((inj l w , w') ∈ ∣Q∣))
+        → ∃[ w' ]
+          (w' ∈ FINAccLang na₂ y) × ((inj l w , w') ∈ ∣Q∣)
       soundness' l  = <-rec (λ l → _) lemma-for-soundness l
 
 open Soundness using (soundness) public

@@ -27,10 +27,10 @@ module Completeness
   where
   
   completeness :
-    ∃ (λ (R : [ Q ]-constrained-simulation)
+    ∃ λ (R : [ Q ]-constrained-simulation)
     → ∀ x → ∀ y
     → x ≤[ na₁ , na₂ , Q ] y
-    → ( x , y ) ∈ [_]-constrained-simulation.R R)
+    → ( x , y ) ∈ [_]-constrained-simulation.R R
   completeness = ( aConstrainedSimulation R final step , λ x y [x,y]∈R → [x,y]∈R )
     where
       -- prove completeness by showing that ≤Q itself is a Q-constrained-simulation

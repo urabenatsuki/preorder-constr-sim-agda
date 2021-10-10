@@ -15,7 +15,7 @@ open import Relation.Binary.PropositionalEquality
   renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Unary using (_∈_)
-open import Data.Product using (_×_; _,_; ∃; proj₁; proj₂)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary.Negation using (contradiction)
 
@@ -34,20 +34,20 @@ module Soundness
   where
 
   lemma-for-soundness :
-    ∀ (l : ℕ)
+    (l : ℕ)
     → (∀ (l' : ℕ) → (l' < l)
-      → ∀ ((x , y) : X₁ × X₂)
+      → ((x , y) : X₁ × X₂)
       → (x , y) ∈ ∣R∣
-      → ∀ (w : FinWord l' A)
+      → (w : FinWord l' A)
       → (inj l' w ∈ FINAccLang na₁ x)
-      → ∃ (λ (w' : FINWord A)
-        → (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l' w , w'))) )
-    → ∀ ((x , y) : X₁ × X₂)
+      → ∃[ w' ] -- : FINWord A
+        (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l' w , w')))
+    → ((x , y) : X₁ × X₂)
     → (x , y) ∈ ∣R∣
-    → ∀ (w : FinWord l A)
+    → (w : FinWord l A)
     → (inj l w ∈ FINAccLang na₁ x)
-    → ∃ (λ (w' : FINWord A)
-      → (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l w , w')))
+    → ∃[ w' ] -- : FINWord A
+      (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l w , w'))
   -- proof by infuction on length of word w such as x⇝[w]x'
   -- Base case
   lemma-for-soundness zero _ (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) with Rfinal (headF xs) y [x,y]∈R last[xs]∈F₁ | 0-length-word≡ε w
@@ -293,10 +293,10 @@ module Soundness
       -- construct the word w'·w''.
       -- It satisfies y ⇝[w'·w''] y' and (w , w'·w'') ∈ Q
       construction :
-        ∃ (λ m'
-        → ∃ (λ (w'·w'' : FinWord (m + m') A)
+        ∃[ m' ]
+          ∃ λ (w'·w'' : FinWord (m + m') A)
           → (inj (m + m') w'·w'' ∈ FINAccLang na₂ y)
-            × ( (inj (suc n) w , inj (m + m') w'·w'') ∈ ∣Q∣ )))
+            × ( (inj (suc n) w , inj (m + m') w'·w'') ∈ ∣Q∣ )
       construction with IH
       construction | (m' , w'') , (ys' , ys'0≡ys[m] , trw'' , last[ys']∈F₂) , w₂Qw'' =
         (m' , concat w' w'' , (ys·ys' , ys·ys'0≡ys0 , trw'w'' , last[ys·ys']∈F₂) , wQw'w'')
@@ -362,16 +362,16 @@ module Soundness
             ∎)
   
   -- Theorem[soundness] If R is Q-constrained-simulation and (x, y) ∈ R then x ≤Q y
-  soundness : ∀ ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ → x ≤[ na₁ , na₂ , Q ] y
+  soundness : ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ → x ≤[ na₁ , na₂ , Q ] y
   soundness [x,y] [x,y]∈R (l , w) w∈L*[x] = soundness' l [x,y] [x,y]∈R w w∈L*[x]
     where
       soundness' :
-        ∀ (l : ℕ) →
-        ∀ ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ 
-        → ∀ (w : FinWord l A)
+        (l : ℕ)
+        → ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ 
+        → (w : FinWord l A)
         → (inj l w ∈ FINAccLang na₁ x)
-        → ∃ (λ (w' : FINWord A)
-          → (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l w , w')))
+        → ∃[ w' ] -- : FINWord A
+          (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l w , w'))
       soundness' l  = <-rec (λ l → _) lemma-for-soundness l
 
 open Soundness using (soundness) public
