@@ -22,7 +22,9 @@ open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Base
 open import FinForWord
 open import Word
-open import QSimulation.Base X₁ X₂ A na₁ na₂
+open import QSimulation.Base
+open QSimulation.Base.ConditionOnQ A
+open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
 
 module Soundness
