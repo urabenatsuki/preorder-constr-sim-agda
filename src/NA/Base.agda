@@ -107,7 +107,7 @@ FINAccLang-from[ x₀ ]to[ x ] na = ［ FinAccLang-from[ x₀ ]to[ x ] na ］
   w ∈ FINWord-from[ x ]to[ x' ] na →
   x' ∈ NA.accept na →
   w ∈ FINAccLang na x
-[x⇝[w]x']and[x'∈F]⇒[w∈L[x]] {X} {A} na x x' w@(inj n ww)
+[x⇝[w]x']and[x'∈F]⇒[w∈L[x]] {X} {A} na x x' w@(n , ww)
   x⇝[w]x'@(xs , xs₀≡x , ∀i[] , xsₙ≡x') x'∈F =
   (xs , xs₀≡x , ∀i[] , step-∋ (NA.accept na) x'∈F (≡sym xsₙ≡x'))
 

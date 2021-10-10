@@ -8,7 +8,7 @@ open import Data.Fin
   using (Fin; inject₁; inject≤; inject+; cast; toℕ; fromℕ; fromℕ<)
   renaming (zero to 0F; suc to sucF)
 open import Data.Product
-  using (∃; _×_; _,_; proj₁; proj₂)
+  using (∃; _×_; _,_; proj₁; proj₂; Σ; Σ-syntax)
 open import Data.Sum
   using (_⊎_)
 open import Relation.Binary.PropositionalEquality
@@ -25,22 +25,16 @@ open import FinForWord
 --     https://agda.github.io/agda-stdlib/Relation.Unary.html
 --       (esp. infinitary union)
 module InfinitarySum where
-  infix 10 ⨄
-
-  data ⨄ {ℓ : Level} (I : Set) (A : I → Set ℓ) : Set ℓ where
-    inj : (i : I) → (A i) → ⨄ I A
-
-  syntax ⨄ I (λ i → Ai) = ⨄[ i ∶ I ] Ai
 
   ［_］' : {ℓ ℓ' : Level} → {I : Set}
-         → {As : I → Set ℓ} → {B : ⨄ I As → Set ℓ'}
-         → ((i : I) → (a : As i) → B (inj i a))
-         → (a : ⨄ I As) → B a
-  ［ fs ］' (inj i a) = (fs i) a
+         → {As : I → Set ℓ} → {B : Σ I As → Set ℓ'}
+         → ((i : I) → (a : As i) → B (i , a))
+         → (a : Σ I As) → B a
+  ［ fs ］' (i , a) = (fs i) a
 
   ［_］ : {ℓ ℓ' : Level} → {I : Set}
         → {As : I → Set ℓ} → {B : Set ℓ'}
-        → ((i : I) → (As i) → B) → ⨄ I As → B
+        → ((i : I) → (As i) → B) → Σ I As → B
   ［ fs ］ = ［ fs ］'
 
 open InfinitarySum public
@@ -49,9 +43,12 @@ open InfinitarySum public
 FinWord : (n : ℕ) → Set → Set
 FinWord n A = Fin n → A
 
--- A^* := ⨄ A^n
+-- A^* := Σ A^n
 FINWord : Set → Set
-FINWord A = ⨄[ n ∶ ℕ ] (FinWord n A)
+FINWord A = Σ[ n ∈ ℕ ] FinWord n A
+
+inj : {A : Set} → (n : ℕ) → FinWord n A → FINWord A
+inj n w = (n , w)
 
 headF : {A : Set} -> {n : ℕ} → FinWord (suc n) A → A
 headF w = w 0F
@@ -72,7 +69,7 @@ concat {A} {zero} {n} w v = v
 concat {A} {suc m} {n} w v 0F = w 0F
 concat {A} {suc m} {n} w v (sucF i) = concat (tailF w) v i
 _·_ : {A : Set} → FINWord A → FINWord A → FINWord A
-inj m w · inj n v = inj (m + n) (concat w v)
+(m , w) · (n , v) = (m + n , concat w v)
 
 -- the empty word
 emptyF : {A : Set} → FinWord 0 A
@@ -82,7 +79,7 @@ emptyF ()
 ε-word' : (A : Set) → FinWord 0 A
 ε-word' A = emptyF {A}
 ε-word : (A : Set) → FINWord A
-ε-word A = inj 0 (ε-word' A)
+ε-word A = (0 , ε-word' A)
 
 -- auxiality function to construct `split`
 n-k : {n k : ℕ} → k ≤ n → ∃ (λ (l : ℕ) → k + l ≡ n)
@@ -110,7 +107,7 @@ split {A} {.(k + l)} {k} w k≤n | l , p@refl = (w₁ , w₂)
 
 -- length
 ∣_∣ : {A : Set} → FINWord A → ℕ
-∣ inj n w ∣ = n
+∣ (n , w) ∣ = n
 
 
 -- A^ω as a `Nat`-indexed data type

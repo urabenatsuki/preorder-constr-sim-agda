@@ -51,7 +51,7 @@ module Soundness
   -- proof by infuction on length of word w such as x⇝[w]x'
   -- Base case
   lemma-for-soundness zero _ (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) with Rfinal (headF xs) y [x,y]∈R last[xs]∈F₁ | 0-length-word≡ε w
-  lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) | w'@(inj n as) , y' , y⇝[w']y'@(ys , ≡refl , tr₂ , ≡refl) , y'∈F₂ , ε∣Q∣w' | ≡refl  =
+  lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) | w'@(n , as) , y' , y⇝[w']y'@(ys , ≡refl , tr₂ , ≡refl) , y'∈F₂ , ε∣Q∣w' | ≡refl  =
     (w' , (ys , ≡refl , tr₂ , y'∈F₂) , ε∣Q∣w')
   -- Step
   {- By using Step-condition, we have w' and y' such that
@@ -69,28 +69,28 @@ module Soundness
     -- use Step condition
     with Rstep (headF xs) y [x,y]∈R n xs w ≡refl trw last[xs]∈F₁
   lemma-for-soundness (suc n) rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁)
-    | k , k≢0 , sk≤ssn@(s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k , k≢0 , sk≤ssn@(s≤s k≤sn) , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     with w₁w₂≡w w k≤sn | k≢0→k<sn→sk'≡k k≢0 (s≤s k≤sn)
   lemma-for-soundness (suc n) rec (.(headF xs) , .(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | k@.(suc k') , k≢0 , s≤s k≤sn , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k@.(suc k') , k≢0 , s≤s k≤sn , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     -- split w into w₁ and w₂ at index k
     with n-k k≤sn | split w k≤sn | w₂i≡w[k+i] {A} {_} {k} w k≤sn | w₁i≡wi w k≤sn | s≤s k≤sn
   lemma-for-soundness (suc n) rec (.(headF xs) , .(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | k@.(suc k') , k≢0 , (s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k@.(suc k') , k≢0 , (s≤s k≤sn) , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     | l , k+l≡sn@≡refl | w₁ , w₂ | w₂i≡ | w₁i≡ | sk≤ssn
     -- split xs into xs₁ and xs₂^ at index k
     with n-k sk≤ssn | split xs sk≤ssn | w₂i≡w[k+i] {X₁} {_} {suc k} xs sk≤ssn | w₁i≡wi xs sk≤ssn
   lemma-for-soundness (suc n) rec (.(headF xs) , .(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | k@.(suc k') , k≢0 , (s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k@.(suc k') , k≢0 , (s≤s k≤sn) , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     | l , k+l≡sn@≡refl | w₁ , w₂ | w₂i≡ | w₁i≡ | sk≤ssn
     | l' , ss[k+l']≡ss[k'+l] | xs₁ , xs₂^ | xs₂i≡ | xs₁i≡
     -- we have l ≡ l'
     with ss[k'+l']≡ss[k'+l]→l'≡l {k'} {l'} {l} ss[k+l']≡ss[k'+l]
   lemma-for-soundness (suc n@.(k' + l)) rec (.(headF xs) , y@.(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | k@.(suc k') , k≢0 , (s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k@.(suc k') , k≢0 , (s≤s k≤sn) , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     | l , ≡refl | w₁ , w₂ | w₂i≡ | w₁i≡ | sk≤ssn
     | .l , s[k+l]≡ss[k'+l] | xs₁ , xs₂^ | xs₂i≡ | xs₁i≡
@@ -100,7 +100,7 @@ module Soundness
   
   -- Case: k ≡ n and y' ∈ F₂
   lemma-for-soundness (suc n@.(k' + l)) rec (.(headF xs) , y@.(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | k@.(suc k') , k≢0 , (s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k@.(suc k') , k≢0 , (s≤s k≤sn) , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     | l , ≡refl | w₁ , w₂ | w₂i≡ | w₁i≡ | sk≤ssn
     | .l , s[k+l]≡ss[k'+l] | xs₁ , xs₂^ | xs₂i≡ | xs₁i≡
@@ -109,7 +109,7 @@ module Soundness
     -- we have l ≡ 0
     with a≡a+b→b≡0 sk'≡sk'+l
   lemma-for-soundness (suc .(k' + 0)) rec (.(headF xs) , .(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | .(suc k') , k≢0 , s≤s k≤sn , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | .(suc k') , k≢0 , s≤s k≤sn , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     | .0 , ≡refl | w₁ , w₂ | w₂i≡ | w₁i≡ | sk≤ssn
     | .0 , s[k+l]≡ss[k'+l] | xs₁ , xs₂^ | xs₂i≡ | xs₁i≡
@@ -136,7 +136,7 @@ module Soundness
     y  ⇝[w'] y' ⇝[w'₂] y'' ∈ F₂
   -}
   lemma-for-soundness (suc n@.(k' + l)) rec (.(headF xs) , y@.(ys zeroF)) [x,y]∈R w (xs , ≡refl , trw , last[xs]∈F₁)
-    | k@.(suc k') , k≢0 , (s≤s k≤sn) , inj m w' , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
+    | k@.(suc k') , k≢0 , (s≤s k≤sn) , (m , w') , .(ys (fromℕ m)) , [w₁,w']∈Q , (ys , ≡refl , trw' , ≡refl) , [xs[k],y']∈R∨[k≡n∧y'∈F₂]
     | proof-of-w₁w₂≡w | k' , ≡refl
     | l , ≡refl | w₁ , w₂ | w₂i≡ | w₁i≡ | sk≤ssn
     | .l , s[k+l]≡ss[k'+l] | xs₁ , xs₂^ | xs₂i≡ | xs₁i≡
@@ -298,7 +298,7 @@ module Soundness
           → (inj (m + m') w'·w'' ∈ FINAccLang na₂ y)
             × ( (inj (suc n) w , inj (m + m') w'·w'') ∈ ∣Q∣ )))
       construction with IH
-      construction | inj m' w'' , (ys' , ys'0≡ys[m] , trw'' , last[ys']∈F₂) , w₂Qw'' =
+      construction | (m' , w'') , (ys' , ys'0≡ys[m] , trw'' , last[ys']∈F₂) , w₂Qw'' =
         (m' , concat w' w'' , (ys·ys' , ys·ys'0≡ys0 , trw'w'' , last[ys·ys']∈F₂) , wQw'w'')
         where
           ys·ys' : Fin (suc (m + m')) → X₂
@@ -363,7 +363,7 @@ module Soundness
   
   -- Theorem[soundness] If R is Q-constrained-simulation and (x, y) ∈ R then x ≤Q y
   soundness : ∀ ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ → x ≤[ na₁ , na₂ , Q ] y
-  soundness [x,y] [x,y]∈R (inj l w) w∈L*[x] = soundness' l [x,y] [x,y]∈R w w∈L*[x]
+  soundness [x,y] [x,y]∈R (l , w) w∈L*[x] = soundness' l [x,y] [x,y]∈R w w∈L*[x]
     where
       soundness' :
         ∀ (l : ℕ) →

@@ -126,7 +126,7 @@ FINAccLang-Empty-if-accept-Empty :
   → Empty (NA.accept na) → Empty (FINAccLang na x)
 FINAccLang-Empty-if-accept-Empty na x accept-Empty =
   -- for any `as : FinWord n A`,
-  λ { (inj n as) →
+  λ { (n , as) →
     -- if `as ∈ FinAccLang na x n`,
     -- i.e. if there exists some `xs : FinWord (suc n) X` s.t.
     --      [1] it starts with `x`,

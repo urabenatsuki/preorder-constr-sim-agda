@@ -46,7 +46,7 @@ module Completeness
       final x y [x,y]∈R x∈F₁
         with [x,y]∈R (ε-word A) ((λ i → x) , ≡refl , (λ ()) , x∈F₁)
       final x y [x,y]∈R x∈F₁
-        | inj n w' , w'∈L[y]@(ys , ≡refl , tr , last[ys]∈F₂) , [ε,w']∈Q =
+        | (n , w') , w'∈L[y]@(ys , ≡refl , tr , last[ys]∈F₂) , [ε,w']∈Q =
         ( inj n w' , ys (fromℕ n) , (ys , ≡refl , tr , ≡refl) , last[ys]∈F₂ , [ε,w']∈Q )
   
       {-
@@ -58,7 +58,7 @@ module Completeness
       step .(xs zeroF) y [x,y]∈R n xs w x≡xs0@≡refl tr last[xs]∈F₁
         with [x,y]∈R (inj (suc n) w) (xs , ≡refl , tr , last[xs]∈F₁)
       step .(xs zeroF) y [x,y]∈R n xs w x≡xs0@≡refl tr last[xs]∈F₁
-        | inj n' w' , w'∈L[y]@(ys , ≡refl , tr' , last[ys]∈F₂) , [w,w']∈Q =
+        | (n' , w') , w'∈L[y]@(ys , ≡refl , tr' , last[ys]∈F₂) , [w,w']∈Q =
         ( suc n , (λ ()) , n≤n
         , inj n' w' -- w'
         , ys (fromℕ n') -- y'

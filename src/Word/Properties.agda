@@ -8,7 +8,7 @@ open import Data.Fin
   using (Fin; inject₁; inject≤; inject+; cast; toℕ; fromℕ; fromℕ<)
   renaming (zero to 0F; suc to sucF)
 open import Data.Product
-  using (∃; _×_; _,_; proj₁; proj₂)
+  using (∃; _×_; _,_; proj₁; proj₂; Σ; Σ-syntax)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong; sym)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
@@ -27,15 +27,15 @@ module PathLiftingProperty where
   path* :  {ℓ : Level} → {I : Set} → {A : I → Set ℓ}
     → {i j : I} → i ≡ j → A i → A j
   path* refl u = u
-  
+
   Path-lifting-property : {A : Set} → {i j : ℕ}
     → (u : FinWord i A) → (p : i ≡ j)
     → Set
   Path-lifting-property {A} {i} {j} u p = LHS ≡ RHS
     where
-      LHS : ⨄[ n ∶ ℕ ] (FinWord n A)
+      LHS : Σ[ n ∈ ℕ ] (FinWord n A)
       LHS = inj i u
-      RHS : ⨄[ n ∶ ℕ ] (FinWord n A)
+      RHS : Σ[ n ∈ ℕ ] (FinWord n A)
       RHS = inj j (path* p u)
   path-lifting-property : {A : Set} → {i j : ℕ}
     → (u : FinWord i A) → (p : i ≡ j)
@@ -146,29 +146,12 @@ w₁w₂≡w {A} {n} {k} w k≤n | p | l , refl | w₁ , w₂ =
   ≡⟨ w'≡w w refl ⟩
   w
   ∎
-cast-word : {A : Set} → {n m : ℕ} → m ≡ n → FinWord n A → FinWord m A
-cast-word {A} {n} {.n} refl w = w
 
 a≡a+0 : ∀ {a : ℕ} → a ≡ a + 0
 a≡a+0 {zero} = refl
 a≡a+0 {suc a} = cong suc a≡a+0
 a+0≡a : ∀ {a : ℕ} → a + 0 ≡ a
 a+0≡a = sym a≡a+0
-
-Prop[castw≡w] : {A : Set} → {m n : ℕ} → m ≡ n → (w : FinWord n A) → Set
-Prop[castw≡w] {A} {m} {n@.m} refl w = LHS ≡ RHS
-  where
-    LHS : FINWord A
-    LHS = inj m w
-    RHS : FINWord A
-    RHS = inj n w
-inj[n]w≡inj[m]w : {A : Set} → {n m : ℕ} → (p : m ≡ n) → (w : FinWord n A)
-  → Prop[castw≡w] p w
-inj[n]w≡inj[m]w {A} {n} {.n} refl w = refl
-
-inj[n]w≡inj[n+0]w : {A : Set} → {n : ℕ} → (w : FinWord (n + 0) A)
-  → Prop[castw≡w] {A} {n} {n + 0} a≡a+0 w
-inj[n]w≡inj[n+0]w {A} {n} w = inj[n]w≡inj[m]w a≡a+0 w
 
 -- inj n (λ i → w (inject≤ i k≤m))  ≡   inj m w
 Prop[inj[n]w[inj≤i]≡inj[m]w] : {A : Set} → {k n m : ℕ}
