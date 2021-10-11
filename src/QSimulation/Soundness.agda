@@ -14,7 +14,7 @@ open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; inspect; [_])
   renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
-open import Relation.Unary using (_∈_)
+open import Relation.Unary using (_∈_; _⊆_)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary.Negation using (contradiction)
@@ -374,4 +374,59 @@ module Soundness
           (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l w , w'))
       soundness' l  = <-rec (λ l → _) lemma-for-soundness l
 
+
+  -- prove soundness from up-to version
+  soundness-from-upto :
+    ((x , y) : X₁ × X₂) → (x , y) ∈ ∣R∣ → x ≤[ na₁ , na₂ , Q ] y
+  soundness-from-upto [x,y] [x,y]∈R =
+    a
+    where
+      -- Q₁ and Q₂ are ≡.
+      Eq : Preorder {FINWord A}
+      Eq = aPreorder (λ (w , u) → w ≡ u) (λ w → ≡refl)
+        (λ w₁ w₂ w₃ → λ { ≡refl → λ { ≡refl → ≡refl } })
+
+      [Q,≡,≡]-is-reasonable : [ Q , Eq , Eq ]-is-reasonable
+      [Q,≡,≡]-is-reasonable =
+        Q-is-closed-under-concat ,
+        [w,w']∈Eq→∣w'∣≤∣w∣ ,
+        Eq∘Q∘Eq⊆Q
+        where
+          [w,w']∈Eq→∣w'∣≤∣w∣ :
+            (w w' : FINWord A) → (w , w') ∈ Preorder.carrier Eq → ∣ w' ∣ ≤ ∣ w ∣
+          [w,w']∈Eq→∣w'∣≤∣w∣ (n , w) (.n , .w) ≡refl = ≤-reflexive ≡refl
+          Eq∘Q∘Eq⊆Q : Preorder.carrier Eq ∘ᵣ ∣Q∣ ∘ᵣ Preorder.carrier Eq ⊆ ∣Q∣
+          Eq∘Q∘Eq⊆Q (w , (w' , ≡refl , [w,w']∈Q) , ≡refl) = [w,w']∈Q
+
+      -- R₁ and R₂ are ≡.
+      R₁ : Pred' (X₁ × X₁)
+      R₁ (x , x') = x ≡ x'
+      [R₁]⊆[≤[≡]] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ , Eq ] x')
+      [R₁]⊆[≤[≡]] ≡refl w w∈F₁[x] = (w , w∈F₁[x] , ≡refl)
+
+      R₂ : Pred' (X₂ × X₂)
+      R₂ (y , y') = y ≡ y'
+      [R₂]⊆[≤[≡]] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ , Eq ] y')
+      [R₂]⊆[≤[≡]] ≡refl w w∈F₂[y] = (w , w∈F₂[y] , ≡refl)
+
+      R-as-[Q,R₁,R₂]-sim : [ Q , R₁ , R₂ ]-constrained-simulation-upto
+      R-as-[Q,R₁,R₂]-sim = aConstrainedSimulationUpto ∣R∣ Rfinal Rstep-upto
+        where
+          Rstep-upto : (x' : X₁) (y' : X₂) →
+            (x' , y') ∈ ∣R∣ → StepUpto[ Q , R₁ , R₂ ] ∣R∣ x' y'
+          Rstep-upto x' y' [x',y']∈R n xs as p tr last[xs]∈F₁
+            with Rstep x' y' [x',y']∈R n xs as p tr last[xs]∈F₁
+          Rstep-upto x' y' [x',y']∈R n xs as p tr last[xs]∈F₁
+            | k , k≢0 , k<ssn , w' , y'' , [as↾k,w']∈Q , y'⇝[w']y'' , inj₁ [last[xs],y'']∈∣R∣ =
+            ( k , k≢0 , k<ssn , w' , y'' , [as↾k,w']∈Q , y'⇝[w']y''
+            , inj₁ (y'' , (xs (fromℕ< k<ssn) , ≡refl , [last[xs],y'']∈∣R∣) , ≡refl))
+          Rstep-upto x' y' [x',y']∈R n xs as p tr last[xs]∈F₁
+            | k , k≢0 , k<ssn , w' , y'' , [as↾k,w']∈Q , y'⇝[w']y'' , inj₂ acc = 
+            (k , k≢0 , k<ssn , w' , y'' , [as↾k,w']∈Q , y'⇝[w']y'' , inj₂ acc)
+
+      open import QSimulation.SoundnessUpto X₁ X₂ A na₁ na₂
+        renaming (soundness to soundness-upto)
+      a = soundness-upto Q Eq Eq [Q,≡,≡]-is-reasonable
+        R₁ [R₁]⊆[≤[≡]] R₂ [R₂]⊆[≤[≡]] R-as-[Q,R₁,R₂]-sim [x,y] [x,y]∈R
 open Soundness using (soundness) public
+
