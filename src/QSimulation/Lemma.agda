@@ -63,6 +63,31 @@ inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {sucF i} (s≤s m�
   sucF (inject₁ (inject≤ i m≤n))
   ∎
 
+inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] : {k m n : ℕ}
+  → (i : Fin k)
+  → (k≤m : k ≤ m) → (m≤n : m ≤ n) → (k≤n : k ≤ n)
+  → inject≤ (inject≤ i k≤m) m≤n ≡ inject≤ i k≤n
+inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] {.(suc _)} {suc m} {suc n} zeroF k≤sm sm≤sn k≤sn = ≡refl
+inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] {.(suc _)} {suc m} {suc n} (sucF i) k≤m m≤n k≤n =
+  begin
+  sucF (inject≤ (inject≤ i (≤-pred k≤m)) (≤-pred m≤n))
+  ≡⟨ ≡cong sucF (inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] i (≤-pred k≤m) (≤-pred m≤n) (≤-pred k≤n)) ⟩
+  sucF (inject≤ i (≤-pred k≤n))
+  ∎
+
+inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] : {a b c : ℕ}
+  → (sa≤b : suc a ≤ b)
+  → (b≤c : b ≤ c)
+  → (sa≤c : suc a ≤ c)
+  → inject≤ (fromℕ< sa≤b) (b≤c) ≡ fromℕ< sa≤c
+inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] {zero} {suc b} {suc c} (s≤s a≤b) (s≤s b≤c) (s≤s a≤c) = ≡refl
+inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] {suc a} {suc b} {suc c} (s≤s a≤b) (s≤s b≤sc) (s≤s a≤c) =
+  begin
+  sucF (inject≤ (fromℕ< a≤b) b≤sc)
+  ≡⟨ ≡cong sucF (inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] a≤b b≤sc a≤c) ⟩
+  sucF (fromℕ< a≤c)
+  ∎
+
 inject≤[fromℕ[sa]][sa<sb]≡s[fromℕ<[a<b]] : {a b : ℕ}
   → (ssa≤sb : suc (suc a) ≤ suc b)
   → (sa≤b : suc a ≤ b)
@@ -261,3 +286,4 @@ module Transition
       ≡⟨ ≡cong (λ a → y·y' (inject₁ i) , concat w w' i , a) y'[sj']≡tail[y]·y'[i] ⟩
       y·y' (inject₁ i) , concat w w' i , concat (tailF y) (tailF y') i
       ∎)
+ 

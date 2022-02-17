@@ -26,7 +26,8 @@ open import NA
 open import QSimulation.Base
 open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
-open import QSimulation.Lemma using (inject≤inject₁≡inject₁inject≤)
+open import QSimulation.Lemma
+    using (inject≤inject₁≡inject₁inject≤; inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n]; inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c])
 
 M≤N⇒FinalN⇒FinalM :
     ∀ {M N : ℕ} → M ≤ N
@@ -53,9 +54,8 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q R .(xs zeroF) y StepM xs w ≡refl tr
 M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y StepM xs w ≡refl tr
     | w↾<M , w↾≥M | w↾<Mi≡wi
     | xs↾≤M , xs↾>M | xs↾≤Mi≡xsi =
-    (k , k≢0 , sk≤sN , w' , y' , [w↾sk≤sN,w']∈Q , y⇝[w']y' , {!  !} )
+    (k , k≢0 , sk≤sN , w' , y' , [w↾sk≤sN,w']∈Q , y⇝[w']y' , [xs[fromℕ<[sk≤sN]],y']∈R )
     where
-        -- xs↾≤Mi≡xsi : (i : Fin (suc M)) → xs≤M i ≡ xs (inject≤ i (s≤s M≤N))
         xs0≡xs↾≤M0 : (xs zeroF) ≡ (xs↾≤M zeroF)
         xs0≡xs↾≤M0 = begin xs zeroF ≡⟨ ≡sym (xs↾≤Mi≡xsi zeroF) ⟩ xs↾≤M zeroF ∎
 
@@ -101,22 +101,28 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y St
         [w↾<M↾≤k,w']∈Q = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepM)))))
         
 
-        a : {n m k : ℕ} → (m≤n : m ≤ n) → (sk≤sm : suc k ≤ suc m)
-            → (sk≤sn : suc k ≤ suc n)
-            → (u' : Fin m → A) → (u : Fin n → A)
-            → ((i : Fin m) → u' i ≡ u (inject≤ i m≤n))
-            → (i : Fin k)
-            → (u' ↾ sk≤sm) i ≡ (u ↾ sk≤sn) i
-        a {n} {m} {k} m≤n sk≤sm sk≤sn u' u p i = {!   !}
-
-
         w↾<M↾≤k[i]≡w↾≤sN↾<k[i] : (i : Fin k) → (w↾<M ↾ sk≤sM) i ≡ (w ↾ sk≤sN) i
-        w↾<M↾≤k[i]≡w↾≤sN↾<k[i] i = begin
-            (w↾<M ↾ sk≤sM) i
-            ≡⟨ {!   !} ⟩
-            (w ↾ sk≤sN) i
-            ∎
-        -- (i : Fin M) → w i ≡ w' (inject≤ i M≤N)
+        w↾<M↾≤k[i]≡w↾≤sN↾<k[i] i = lemma M≤N sk≤sM sk≤sN w↾<M w w↾<Mi≡wi i
+            where
+                lemma : {n m k : ℕ} → (m≤n : m ≤ n) → (sk≤sm : suc k ≤ suc m)
+                    → (sk≤sn : suc k ≤ suc n)
+                    → (u' : Fin m → A) → (u : Fin n → A)
+                    → ((i : Fin m) → u' i ≡ u (inject≤ i m≤n))
+                    → (i : Fin k)
+                    → (u' ↾ sk≤sm) i ≡ (u ↾ sk≤sn) i
+                lemma {n} {m} {suc k} m≤n sk≤sm@(s≤s k≤m) sk≤sn@(s≤s k≤n) u' u p i with u' ↾ sk≤sm |  w₁i≡wi u' k≤m | u ↾ sk≤sn | w₁i≡wi u k≤n
+                lemma {n} {m} {suc k} m≤n sk≤sm@(s≤s k≤m) sk≤sn@(s≤s k≤n) u' u p i | LHS | qₗ | RHS | qᵣ =
+                    begin
+                    LHS i
+                    ≡⟨ qₗ i ⟩
+                    u' (inject≤ i k≤m)
+                    ≡⟨ p (inject≤ i k≤m) ⟩
+                    u (inject≤ (inject≤ i k≤m) m≤n)
+                    ≡⟨ ≡cong u (inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] i k≤m m≤n k≤n) ⟩
+                    u (inject≤ i k≤n)
+                    ≡⟨ ≡sym (qᵣ i) ⟩
+                    RHS i
+                    ∎
 
         [w↾sk≤sN,w']∈Q : (( k , w ↾ sk≤sN ) , w') ∈ ∣Q∣
         [w↾sk≤sN,w']∈Q = step-∋ ∣Q∣ [w↾<M↾≤k,w']∈Q
@@ -128,3 +134,15 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y St
 
         y⇝[w']y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepM))))))
 
+        [xs↾≤M[fromℕ<[sk≤sM]],y']∈R : (xs↾≤M (fromℕ< sk≤sM) , y') ∈ R
+        [xs↾≤M[fromℕ<[sk≤sM]],y']∈R = proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepM))))))
+        [xs[fromℕ<[sk≤sN]],y']∈R : (xs (fromℕ< sk≤sN) , y') ∈ R
+        [xs[fromℕ<[sk≤sN]],y']∈R = step-∋ R [xs↾≤M[fromℕ<[sk≤sM]],y']∈R
+            (≡cong (λ x → (x , y'))
+                (begin
+                xs↾≤M (fromℕ< sk≤sM)
+                ≡⟨ xs↾≤Mi≡xsi (fromℕ< sk≤sM) ⟩
+                xs (inject≤ (fromℕ< sk≤sM) (s≤s M≤N))
+                ≡⟨ ≡cong xs (inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] sk≤sM (s≤s M≤N) sk≤sN) ⟩
+                xs (fromℕ< sk≤sN)
+                ∎))
