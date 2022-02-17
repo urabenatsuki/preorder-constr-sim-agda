@@ -6,7 +6,7 @@ module QSimulation.SoundnessUpto
   where
 
 open import Data.Nat
-open import Data.Nat.Properties
+open import Data.Nat.Properties using(+-suc; ≤-trans; m≤n+m)
 open import Data.Nat.Induction using (<-rec)
 open import Data.Fin
   using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
@@ -327,7 +327,7 @@ module Soundness
         y^ ⇝[v^] y♯ ∈ F₂
       -}
       n^≤k'+l : n^ ≤ k' + l
-      n^≤k'+l = ≤-trans n^≤l (a≤b+a {l} {k'})
+      n^≤k'+l = ≤-trans n^≤l (m≤n+m l k')
 
       [m^,v^,v^∈L[y^],[w^,v^]∈Q] : ∃[ m^ ] ∃ λ (v^ : FinWord m^ A)
         → (inj m^ v^ ∈ FINAccLang na₂ y^) × ((inj n^ w^ , inj m^ v^) ∈ ∣Q∣)
@@ -493,3 +493,4 @@ module Soundness
       soundness' l  = <-rec (λ l → _) lemma-for-soundness l
 
 open Soundness using (soundness) public
+ 

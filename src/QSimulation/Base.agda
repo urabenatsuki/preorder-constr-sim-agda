@@ -2,6 +2,7 @@ open import NA.Base
 module QSimulation.Base where
 
 open import Data.Nat
+open import Data.Nat.Properties using (≤-step)
 open import Data.Fin
   using (Fin; inject₁; fromℕ; fromℕ< )
   renaming (zero to zeroF; suc to sucF)
@@ -50,6 +51,55 @@ module ConditionOnQ (A : Set) where
     (∣Q₁∣ ∘ᵣ ∣Q∣ ∘ᵣ ∣Q₂∣) ⊆ ∣Q∣
 
 module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
+    
+  Final[_][_] : ℕ → Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  Final[ M ][ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =
+    -- for any n, xs ∈ X₁ⁿ⁺¹, and w ∈ Σⁿ,
+    (n : ℕ) →
+    (xs : FinWord (suc n) X₁) →
+    (w : FinWord n A) →
+    -- if x ≡ x₀ ⇝[a₀] x₁ ⇝[a₁] ⋯ ⇝[aₙ₋₁] xₙ ∈ F₁ (where aᵢ = w i)
+    x ≡ xs zeroF →
+    ((i : Fin n) → NA.trans na₁ ((xs (inject₁ i)) , w i , xs (sucF i))) →
+    xs (fromℕ n) ∈ NA.accept na₁ →
+    -- and n < M,
+    (n < M) →
+    -- then
+    -- there exist
+    -- a word w' ∈ Σ*
+    ∃[ w' ] -- w' : FINWord A
+    -- and a state y' ∈ X₂
+    ∃[ y' ] -- y' : X₂
+    -- such that
+    -- w Q w'
+    (inj n w , w') ∈ ∣Q∣ ×
+    -- y ⇝[w'] y' ∈ F₂
+    (w' ∈ FINWord-from[ y ]to[ y' ] na₂) × (y' ∈ NA.accept na₂)
+
+  Step[_][_] : ℕ → Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  Step[ M ][ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =
+    -- for any xs ∈ X₁ᴹ and w ∈ Σᴹ,
+    (xs : FinWord (suc M) X₁) →
+    (w : FinWord M A) →
+    -- if x ≡ x₀ ⇝[a₀] x₁ ⇝[a₁] ⋯ ⇝[a_{M-1}] xM (where aᵢ = w i)
+    x ≡ xs zeroF →
+    ((i : Fin M) → NA.trans na₁ ((xs (inject₁ i)) , w i , xs (sucF i))) →
+    -- then
+    -- there exists a natural number k ∈ { 1, ⋯ , M }
+    ∃[ k ] -- k : ℕ
+    (k ≢ zero) × ∃ λ (k<sM : k < (suc M)) →
+    -- a word w' ∈ Σ*
+    ∃[ w' ] -- w' : FINWord A
+    -- and a state y' ∈ X₂ such that
+    ∃[ y' ] -- y' : X₂
+    -- a₀a₁⋯aₖ₋₁ Q w'
+    (inj k (w ↾ k<sM) ,  w') ∈ ∣Q∣ ×
+    -- y ⇝[w'] y'
+    w' ∈ FINWord-from[ y ]to[ y' ] na₂ ×
+    -- xₖ R y'
+    (xs (fromℕ< k<sM) , y') ∈ R
+
+  
   Final[_] : Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
   Final[ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =
     -- if x is accept state,
@@ -62,8 +112,6 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- ε Q w
     (ε-word A , w') ∈ ∣Q∣
   
-  _↾_ : {n k : ℕ} → FinWord (suc n) A → k < suc (suc n) → FinWord k A
-  as ↾ (s≤s k≤sn) = proj₁ (split as k≤sn)
   
   Step[_] : Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
   Step[ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =

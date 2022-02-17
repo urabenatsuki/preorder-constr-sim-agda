@@ -3,7 +3,7 @@ open import Level
   using (Level)
   renaming (zero to lzero; suc to lsuc)
 open import Data.Nat
-  using (ℕ; zero; suc; _+_; _≤_; z≤n; s≤s)
+  using (ℕ; zero; suc; _+_; _≤_; _<_; z≤n; s≤s)
 open import Data.Fin
   using (Fin; inject₁; inject≤; inject+; cast; toℕ; fromℕ; fromℕ<)
   renaming (zero to 0F; suc to sucF)
@@ -104,6 +104,10 @@ split {A} {.(k + l)} {k} w k≤n | l , p@refl = (w₁ , w₂)
     w₁ i = w (inject≤ i k≤n)
     w₂ : FinWord l A
     w₂ j = w (cast p (inject+' k j))
+
+-- get the prefix of length k
+_↾_ : {A : Set} {n k : ℕ} → FinWord n A → k < suc n → FinWord k A
+w ↾ (s≤s k≤n) = proj₁ (split w k≤n)
 
 -- length
 ∣_∣ : {A : Set} → FINWord A → ℕ

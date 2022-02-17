@@ -25,10 +25,6 @@ a≡a+b→b≡0 : ∀ {a b : ℕ} → a ≡ a + b → b ≡ zero
 a≡a+b→b≡0 {zero} {.zero} ≡refl = ≡refl
 a≡a+b→b≡0 {suc a} {b} p = a≡a+b→b≡0 {a} {b} (≡cong (λ i → i ∸ 1) p)
 
-a≤b+a : {a b : ℕ} → a ≤ b + a
-a≤b+a {a} {zero} = ≤-refl
-a≤b+a {a} {suc b} = ≤-step a≤b+a
-
 ≡-pred : ∀ {n m : ℕ} → suc n ≡ suc m → n ≡ m
 ≡-pred ≡refl = ≡refl
 
@@ -57,6 +53,16 @@ toℕfromℕ≡id : ∀ (i : ℕ) → toℕ (fromℕ i) ≡ i
 toℕfromℕ≡id zero = ≡refl
 toℕfromℕ≡id (suc i) = ≡cong suc (toℕfromℕ≡id i)
 
+inject≤inject₁≡inject₁inject≤ : ∀ {m n} {i : Fin m} → (m≤n : m ≤ n)
+  → inject≤ (inject₁ i) (s≤s m≤n) ≡ inject₁ (inject≤ i m≤n)
+inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {zeroF} (s≤s m≤n) = ≡refl
+inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {sucF i} (s≤s m≤n) =
+  begin
+  sucF (inject≤ (inject₁ i) (s≤s m≤n))
+  ≡⟨ ≡cong sucF (inject≤inject₁≡inject₁inject≤ m≤n) ⟩
+  sucF (inject₁ (inject≤ i m≤n))
+  ∎
+
 inject≤[fromℕ[sa]][sa<sb]≡s[fromℕ<[a<b]] : {a b : ℕ}
   → (ssa≤sb : suc (suc a) ≤ suc b)
   → (sa≤b : suc a ≤ b)
@@ -65,14 +71,14 @@ inject≤[fromℕ[sa]][sa<sb]≡s[fromℕ<[a<b]] {zero} {suc b} p q = ≡refl
 inject≤[fromℕ[sa]][sa<sb]≡s[fromℕ<[a<b]] {suc a} {.(suc _)} (s≤s p) (s≤s q)
   = ≡cong sucF (inject≤[fromℕ[sa]][sa<sb]≡s[fromℕ<[a<b]] {a} p q)
 
-[sk]+iˡ≡k+siˡ : ∀ {k l n : ℕ} → {i : Fin l}
+[sk]+iˡ≡k+siˡ : ∀ {k l : ℕ} → {i : Fin l}
   → {p : suc k + suc l ≡ suc (toℕ (fromℕ k)) + suc l}
   → cast p (inject+' (suc k) (inject₁ i)) ≡ inject₁ (cast ≡refl (fromℕ k +F sucF i))
-[sk]+iˡ≡k+siˡ {zero} {l} {n} {zeroF} {≡refl} = ≡refl
-[sk]+iˡ≡k+siˡ {zero} {suc l} {n} {sucF i} {≡refl} =
-  ≡cong sucF ([sk]+iˡ≡k+siˡ {zero} {l} {n} {i} {≡refl})
-[sk]+iˡ≡k+siˡ {suc k} {l} {n} {i} {p} =
-  ≡cong sucF ([sk]+iˡ≡k+siˡ {k} {l} {n} {i} {≡cong (λ i → i ∸ 1) p})
+[sk]+iˡ≡k+siˡ {zero} {l} {zeroF} {≡refl} = ≡refl
+[sk]+iˡ≡k+siˡ {zero} {suc l} {sucF i} {≡refl} =
+  ≡cong sucF ([sk]+iˡ≡k+siˡ {zero} {l} {i} {≡refl})
+[sk]+iˡ≡k+siˡ {suc k} {l} {i} {p} =
+  ≡cong sucF ([sk]+iˡ≡k+siˡ {k} {l} {i} {≡cong (λ i → i ∸ 1) p})
 
 s[k+iˡ]≡k+siˡ : ∀ {k l n : ℕ} → {i : Fin l}
   → (p : toℕ (fromℕ k) + suc l ≡ suc n)
@@ -84,13 +90,13 @@ s[k+iˡ]≡k+siˡ {zero} {suc l} {.(suc l)} {sucF i} ≡refl ≡refl =
 s[k+iˡ]≡k+siˡ {suc k} {sl@.(suc _)} {.(toℕ (fromℕ k) + suc (suc _))} {zeroF} p@≡refl q =
   begin
   sucF (cast q (inject+' (suc k) (inject₁ zeroF)))
-  ≡⟨ ≡cong sucF ([sk]+iˡ≡k+siˡ {k} {sl} {toℕ (fromℕ k) + suc sl} {zeroF} {q}) ⟩
+  ≡⟨ ≡cong sucF ([sk]+iˡ≡k+siˡ {k} {sl} {zeroF} {q}) ⟩
   sucF (inject₁ (cast ≡refl (fromℕ k +F sucF zeroF)))
   ≡⟨⟩
   inject₁ (cast ≡refl (fromℕ (suc k) +F sucF zeroF))
   ∎
 s[k+iˡ]≡k+siˡ {suc k} {sl@.(suc _)} {.(toℕ (fromℕ k) + suc (suc _))} {sucF i} ≡refl q =
-  ≡cong sucF ([sk]+iˡ≡k+siˡ {k} {sl} {toℕ (fromℕ k) + suc sl} {sucF i} {q})
+  ≡cong sucF ([sk]+iˡ≡k+siˡ {k} {sl} {sucF i} {q})
 
 [inject+]≡[+F] : ∀ {k l n : ℕ}
   → (i : Fin l)
