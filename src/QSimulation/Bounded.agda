@@ -31,7 +31,13 @@ open import QSimulation.Base
 open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
-    using (inject≤inject₁≡inject₁inject≤; inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c]; casti≡i; cast-sucF; +F-sucF; cast-cast; inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0])
+    using
+      ( inject≤inject₁≡inject₁inject≤
+      ; inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c]
+      ; casti≡i; cast-sucF; +F-sucF; cast-cast
+      ; [inject+]≡[+F]
+      ; fromℕ-+F-+
+      ; inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0])
 
 M≤N⇒FinalN⇒FinalM :
     ∀ {M N : ℕ} → M ≤ N
@@ -224,76 +230,64 @@ module Lemma
                 suc (M + l)
                 ∎
 
-            
-            lem : ∀ {i : Fin (suc l)} →
-                xs₂ i ≡ xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F i))
-            lem {zeroF} = begin
-                xs₂ zeroF
-                ≡⟨⟩
-                xs₁ (fromℕ M)
-                ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (fromℕ M) ⟩
-                xs (inject≤ (fromℕ M) sM≤sn)
-                ≡⟨ ≡cong xs (inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] sM≤sn toℕfromℕM+sl≡s[M+l]) ⟩
-                xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F zeroF))
-                ∎
-            lem {sucF i} = begin
-                xs₂ (sucF i)
-                ≡⟨⟩
-                xs₂^ i
-                ≡⟨ xs₂^i≡xs[sucF[cast[inject+'[M][i]]]] i ⟩
-                xs (sucF (cast ≡refl (inject+' M i)))
-                ≡⟨ ≡cong (λ j → xs (sucF j)) (casti≡i {M + l} {≡refl} (inject+' M i)) ⟩
-                xs (sucF (inject+' M i))
-                ≡⟨ ≡cong xs
-                    (begin
-                    sucF (inject+' M i)
-                    ≡⟨ ≡cong sucF {!   !} ⟩
-                    sucF (cast (≡cong (λ a → (a + l)) (toℕ-fromℕ M)) (fromℕ M +F i))
-                    ≡⟨ ≡sym (cast-sucF {toℕ (fromℕ M) + l} {M + l} {(≡cong (λ a → (a + l)) (toℕ-fromℕ M))} {_} (fromℕ M +F i)) ⟩
-                    cast (≡cong (λ a → suc (a + l)) (toℕ-fromℕ M)) (sucF (fromℕ M +F i))
-                    ≡⟨ ≡sym (cast-cast (≡sym (+-suc (toℕ (fromℕ M)) l)) toℕfromℕM+sl≡s[M+l] (≡cong (λ a → suc (a + l)) (toℕ-fromℕ M)) (sucF (fromℕ M +F i))) ⟩
-                    cast toℕfromℕM+sl≡s[M+l] (cast (≡sym (+-suc (toℕ (fromℕ M)) l)) (sucF (fromℕ M +F i)))
-                    ≡⟨ ≡cong (λ i → cast toℕfromℕM+sl≡s[M+l] i) (≡sym (+F-sucF (fromℕ M) i)) ⟩
-                    cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F sucF i)
-                    ∎)
-                ⟩
-                xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F sucF i))
-                ∎
-
             last[xs₂]≡last[xs] : lastF xs₂ ≡ lastF xs
             last[xs₂]≡last[xs] = begin
                 xs₂ (fromℕ l)
                 ≡⟨ lem {fromℕ l} ⟩
-                xs (cast _ (fromℕ M +F (fromℕ l)))
-                ≡⟨ ≡cong xs {!   !} ⟩
+                xs (cast p (fromℕ M +F (fromℕ l)))
+                ≡⟨ ≡cong xs (fromℕ-+F-+ M l {p}) ⟩
                 xs (fromℕ (M + l))
                 ∎
-            {-
                 where
-                    lem : ∀ {i : Fin (suc l)} →
-                        xs₂ i ≡ xs (cast {!   !} (fromℕ M +F i))
-                    lem {zeroF} = begin
-                        xs₂ zeroF
-                        ≡⟨⟩
-                        xs₁ (fromℕ M)
-                        ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (fromℕ M) ⟩
-                        xs (inject≤ (fromℕ M) sM≤sn)
-                        ≡⟨ {!   !} ⟩
-                        {!   !}
-                        ∎
-                    lem {sucF i} = begin
-                        xs₂ (sucF i)
-                        ≡⟨⟩
-                        xs₂^ i
-                        ≡⟨ xs₂^i≡xs[sucF[cast[inject+'[M][i]]]] i ⟩
-                        xs (sucF (cast ≡refl (inject+' M i)))
-                        ≡⟨ ≡cong (λ j → xs (sucF j)) (casti≡i {M + l} {≡refl} (inject+' M i)) ⟩
-                        xs (sucF (inject+' M i))
-                        ≡⟨ {!   !} ⟩
-                        {!   !}
-                        ∎
-            -}
-        
+                  p : toℕ (fromℕ M) + suc l ≡ suc (M + l)
+                  p =
+                    begin
+                    toℕ (fromℕ M) + suc l
+                    ≡⟨ ≡cong (λ a → a + suc l) (toℕ-fromℕ M) ⟩
+                    M + suc l
+                    ≡⟨ +-suc M l ⟩
+                    suc (M + l)
+                    ∎
+
+                  q : (i : Fin l) → sucF (inject+' M i) ≡ cast p (fromℕ M +F sucF i)
+                  q i =
+                    begin
+                    sucF (inject+' M i)
+                    ≡⟨ ≡cong sucF (≡sym (casti≡i {M + l} {≡refl} (inject+' M i))) ⟩
+                    sucF (cast ≡refl (inject+' M i))
+                    ≡⟨ ≡cong sucF ([inject+]≡[+F] i ≡refl (≡cong (λ a → (a + l)) (toℕ-fromℕ M)) ) ⟩
+                    sucF (cast (≡cong (λ a → (a + l)) (toℕ-fromℕ M)) (fromℕ M +F i))
+                    ≡⟨ ≡sym (cast-sucF {toℕ (fromℕ M) + l} {M + l} {(≡cong (λ a → (a + l)) (toℕ-fromℕ M))} {_} (fromℕ M +F i)) ⟩
+                    cast (≡cong (λ a → suc (a + l)) (toℕ-fromℕ M)) (sucF (fromℕ M +F i))
+                    ≡⟨ ≡sym (cast-cast (≡sym (+-suc (toℕ (fromℕ M)) l)) p (≡cong (λ a → suc (a + l)) (toℕ-fromℕ M)) (sucF (fromℕ M +F i))) ⟩
+                    cast p (cast (≡sym (+-suc (toℕ (fromℕ M)) l)) (sucF (fromℕ M +F i)))
+                    ≡⟨ ≡cong (λ i → cast p i) (≡sym (+F-sucF (fromℕ M) i)) ⟩
+                    cast p (fromℕ M +F sucF i)
+                    ∎
+
+                  lem : ∀ {i : Fin (suc l)} →
+                      xs₂ i ≡ xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F i))
+                  lem {zeroF} = begin
+                      xs₂ zeroF
+                      ≡⟨⟩
+                      xs₁ (fromℕ M)
+                      ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (fromℕ M) ⟩
+                      xs (inject≤ (fromℕ M) sM≤sn)
+                      ≡⟨ ≡cong xs (inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] sM≤sn toℕfromℕM+sl≡s[M+l]) ⟩
+                      xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F zeroF))
+                      ∎
+                  lem {sucF i} = begin
+                      xs₂ (sucF i)
+                      ≡⟨⟩
+                      xs₂^ i
+                      ≡⟨ xs₂^i≡xs[sucF[cast[inject+'[M][i]]]] i ⟩
+                      xs (sucF (cast ≡refl (inject+' M i)))
+                      ≡⟨ ≡cong (λ j → xs (sucF j)) (casti≡i {M + l} {≡refl} (inject+' M i)) ⟩
+                      xs (sucF (inject+' M i))
+                      ≡⟨ ≡cong xs (q i) ⟩
+                      xs (cast p (fromℕ M +F sucF i))
+                      ∎
+
             last[xs₂]∈F₁ : NA.accept na₁ (lastF xs₂)
             last[xs₂]∈F₁ = step-∋ (NA.accept na₁) last[xs]∈F₁ (≡sym last[xs₂]≡last[xs])
 

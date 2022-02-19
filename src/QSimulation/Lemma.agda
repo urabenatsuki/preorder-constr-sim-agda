@@ -103,6 +103,25 @@ cast-cast {suc n} {.(suc n)} {.(suc n)} ≡refl ≡refl ≡refl (sucF i) =
   cast (≡sym (+-suc (suc (toℕ i)) (suc n))) (sucF (sucF (i +F (sucF j))))
   ∎
 
+fromℕ-+F-+ : (m n : ℕ)
+  → {p : toℕ (fromℕ m) + suc n ≡ suc (m + n)}
+  → cast p (fromℕ m +F fromℕ n) ≡ fromℕ (m + n)
+fromℕ-+F-+ zero zero {p} = ≡refl
+fromℕ-+F-+ zero (suc n) {p} = begin
+  cast p (fromℕ zero +F fromℕ (suc n))
+  ≡⟨⟩
+  sucF (cast (≡cong (λ z → z ∸ 1) p) (fromℕ n))
+  ≡⟨ ≡cong sucF (casti≡i {suc n} {≡refl} (fromℕ n)) ⟩
+  sucF (fromℕ n)
+  ∎
+fromℕ-+F-+ (suc m) n {p} = begin
+  cast p (fromℕ (suc m) +F fromℕ n)
+  ≡⟨⟩
+  sucF (cast (≡cong (λ z → z ∸ 1) p) (fromℕ m +F fromℕ n))
+  ≡⟨ ≡cong sucF (fromℕ-+F-+ m n {≡cong (λ z → z ∸ 1) p}) ⟩
+  sucF (fromℕ (m + n))
+  ∎
+
 inject≤inject₁≡inject₁inject≤ : ∀ {m n} {i : Fin m} → (m≤n : m ≤ n)
   → inject≤ (inject₁ i) (s≤s m≤n) ≡ inject₁ (inject≤ i m≤n)
 inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {zeroF} (s≤s m≤n) = ≡refl
