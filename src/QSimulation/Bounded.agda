@@ -5,19 +5,23 @@ module QSimulation.Bounded
     (na₂@(anNA ⇝₂ _ F₂) : NA X₂ A)
     where
 
-open import Base
 open import Data.Nat
 open import Data.Nat.Properties
-    using (≤-trans)
+    using (≤-trans; m≤n+m; +-suc)
+open import Data.Nat.Induction
+    using (<-rec)
 open import Data.Fin
     using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
     renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
+open import Data.Fin.Properties
+    using (inject≤-idempotent; toℕ-fromℕ)
 open import Relation.Binary.PropositionalEquality
     using (_≡_; _≢_; inspect; [_])
     renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Unary using (_∈_)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 
 open import Base
 open import FinForWord
@@ -27,7 +31,7 @@ open import QSimulation.Base
 open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
-    using (inject≤inject₁≡inject₁inject≤; inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n]; inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c])
+    using (inject≤inject₁≡inject₁inject≤; inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c]; casti≡i; cast-sucF; +F-sucF; cast-cast; inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0])
 
 M≤N⇒FinalN⇒FinalM :
     ∀ {M N : ℕ} → M ≤ N
@@ -37,8 +41,8 @@ M≤N⇒FinalN⇒FinalM :
     → Final[ M ][ Q ] R x y
 M≤N⇒FinalN⇒FinalM
     {M} {N} M≤N Q R .(xs zeroF) y finalN
-    n xs w ≡refl tr tailx∈F₁ n<M =
-    finalN n xs w ≡refl tr tailx∈F₁ (≤-trans n<M M≤N)
+    n xs w ≡refl tr lastx∈F₁ n<M =
+    finalN n xs w ≡refl tr lastx∈F₁ (≤-trans n<M M≤N)
 
 M≤N⇒StepM⇒StepN :
     ∀ {M N : ℕ} → M ≤ N
@@ -118,7 +122,7 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y St
                     u' (inject≤ i k≤m)
                     ≡⟨ p (inject≤ i k≤m) ⟩
                     u (inject≤ (inject≤ i k≤m) m≤n)
-                    ≡⟨ ≡cong u (inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] i k≤m m≤n k≤n) ⟩
+                    ≡⟨ ≡cong u (inject≤-idempotent i k≤m m≤n k≤n ) ⟩
                     u (inject≤ i k≤n)
                     ≡⟨ ≡sym (qᵣ i) ⟩
                     RHS i
@@ -146,3 +150,169 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y St
                 ≡⟨ ≡cong xs (inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] sk≤sM (s≤s M≤N) sk≤sN) ⟩
                 xs (fromℕ< sk≤sN)
                 ∎))
+
+module Lemma
+    (M N : ℕ) (0<M : zero < M) (M≤N : M ≤ N)
+    (Q@(aPreorder ∣Q∣ _ _) : Preorder)
+    (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
+    (R : Pred' (X₁ × X₂))
+    (stepM : ∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
+    (finalM : ∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
+    where
+
+    k≤n⊎n<k : (k n : ℕ) → (k ≤ n) ⊎ (n < k)
+    k≤n⊎n<k zero n = inj₁ z≤n
+    k≤n⊎n<k (suc k) zero = inj₂ (s≤s z≤n)
+    k≤n⊎n<k (suc k) (suc n) with k≤n⊎n<k k n
+    k≤n⊎n<k (suc k) (suc n) | inj₁ k≤n = inj₁ (s≤s k≤n)
+    k≤n⊎n<k (suc k) (suc n) | inj₂ n<k = inj₂ (s≤s n<k)
+
+    lemma :
+        (n : ℕ)
+        → ( -- Induction hypothesis
+            (n' : ℕ) → (n' < n)
+            → (x : X₁) → (y : X₂) → (x , y) ∈ R
+            → (xs : FinWord (suc n') X₁)
+            → (w : FinWord n' A)
+            → x ≡ xs zeroF
+            → ((i : Fin n') → NA.trans na₁ ((xs (inject₁ i)) , w i , xs (sucF i)))
+            → xs (fromℕ n') ∈ NA.accept na₁
+            → (n' < N)
+            → ∃[ w' ] -- w' : FINWord A
+            ∃[ y' ] -- y' : X₂
+            (inj n' w , w') ∈ ∣Q∣ × (w' ∈ FINWord-from[ y ]to[ y' ] na₂) × (y' ∈ NA.accept na₂)
+            )
+        → (x : X₁) → (y : X₂) → (x , y) ∈ R            
+        → (xs : FinWord (suc n) X₁)
+        → (w : FinWord n A)
+        → x ≡ xs zeroF
+        → ((i : Fin n) → NA.trans na₁ ((xs (inject₁ i)) , w i , xs (sucF i)))
+        → xs (fromℕ n) ∈ NA.accept na₁
+        → (n < N)
+        → ∃[ w' ] -- w' : FINWord A
+        ∃[ y' ] -- y' : X₂
+        (inj n w , w') ∈ ∣Q∣ × (w' ∈ FINWord-from[ y ]to[ y' ] na₂) × (y' ∈ NA.accept na₂)
+    lemma n _ x y [x,y]∈R xs w ≡refl tr last[xs]∈F₁ n<N
+        -- case analysis
+        with k≤n⊎n<k (suc n) M
+    lemma n _ x y [x,y]∈R xs w ≡refl tr last[xs]∈F₁ n<N
+        -- base case
+        | inj₁ sn≤M =
+            finalM x y [x,y]∈R n xs w ≡refl tr last[xs]∈F₁ sn≤M
+    lemma n rec x y [x,y]∈R xs w ≡refl tr last[xs]∈F₁ n<N
+        -- step case
+        | inj₂ sM≤sn@(s≤s M≤n)
+        -- split `xs` at `suc M`
+        with n-k M≤n | split xs sM≤sn | w₁i≡wi xs sM≤sn | w₂i≡w[k+i] {X₁} {_} {suc M} xs sM≤sn
+        -- split `w` at `M`
+        | split w M≤n | w₁i≡wi w M≤n | w₂i≡w[k+i] {A} {_} {M} w M≤n
+    lemma .(M + l) IH x y [x,y]∈R xs w ≡refl tr last[xs]∈F₁ n<N
+        | inj₂ sM≤sn@(s≤s M≤n)
+        | l , ≡refl
+        | xs₁ , xs₂^ | xs₁i≡xs[inject≤[i][sM≤sN]] | xs₂^i≡xs[sucF[cast[inject+'[M][i]]]]
+        | w₁ , w₂ | w₁i≡w[inject≤[i][M≤N]] | w₂i≡w[sucF[cast[inject+'[M][i]]]] = ({!   !} , {!   !} , {!   !} , {!   !} , {!   !})
+        where
+            xs₂ : FinWord (suc l) X₁
+            xs₂ = (xs₁ (fromℕ M)) ∷ᶠ xs₂^
+
+            toℕfromℕM+sl≡s[M+l] : toℕ (fromℕ M) + suc l ≡ suc (M + l)
+            toℕfromℕM+sl≡s[M+l] = begin
+                toℕ (fromℕ M) + suc l
+                ≡⟨ ≡cong (λ i → i + suc l) (toℕ-fromℕ M) ⟩
+                M + suc l
+                ≡⟨ +-suc M l ⟩
+                suc (M + l)
+                ∎
+
+            
+            lem : ∀ {i : Fin (suc l)} →
+                xs₂ i ≡ xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F i))
+            lem {zeroF} = begin
+                xs₂ zeroF
+                ≡⟨⟩
+                xs₁ (fromℕ M)
+                ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (fromℕ M) ⟩
+                xs (inject≤ (fromℕ M) sM≤sn)
+                ≡⟨ ≡cong xs (inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] sM≤sn toℕfromℕM+sl≡s[M+l]) ⟩
+                xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F zeroF))
+                ∎
+            lem {sucF i} = begin
+                xs₂ (sucF i)
+                ≡⟨⟩
+                xs₂^ i
+                ≡⟨ xs₂^i≡xs[sucF[cast[inject+'[M][i]]]] i ⟩
+                xs (sucF (cast ≡refl (inject+' M i)))
+                ≡⟨ ≡cong (λ j → xs (sucF j)) (casti≡i {M + l} {≡refl} (inject+' M i)) ⟩
+                xs (sucF (inject+' M i))
+                ≡⟨ ≡cong xs
+                    (begin
+                    sucF (inject+' M i)
+                    ≡⟨ ≡cong sucF {!   !} ⟩
+                    sucF (cast (≡cong (λ a → (a + l)) (toℕ-fromℕ M)) (fromℕ M +F i))
+                    ≡⟨ ≡sym (cast-sucF {toℕ (fromℕ M) + l} {M + l} {(≡cong (λ a → (a + l)) (toℕ-fromℕ M))} {_} (fromℕ M +F i)) ⟩
+                    cast (≡cong (λ a → suc (a + l)) (toℕ-fromℕ M)) (sucF (fromℕ M +F i))
+                    ≡⟨ ≡sym (cast-cast (≡sym (+-suc (toℕ (fromℕ M)) l)) toℕfromℕM+sl≡s[M+l] (≡cong (λ a → suc (a + l)) (toℕ-fromℕ M)) (sucF (fromℕ M +F i))) ⟩
+                    cast toℕfromℕM+sl≡s[M+l] (cast (≡sym (+-suc (toℕ (fromℕ M)) l)) (sucF (fromℕ M +F i)))
+                    ≡⟨ ≡cong (λ i → cast toℕfromℕM+sl≡s[M+l] i) (≡sym (+F-sucF (fromℕ M) i)) ⟩
+                    cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F sucF i)
+                    ∎)
+                ⟩
+                xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F sucF i))
+                ∎
+
+            last[xs₂]≡last[xs] : lastF xs₂ ≡ lastF xs
+            last[xs₂]≡last[xs] = begin
+                xs₂ (fromℕ l)
+                ≡⟨ lem {fromℕ l} ⟩
+                xs (cast _ (fromℕ M +F (fromℕ l)))
+                ≡⟨ ≡cong xs {!   !} ⟩
+                xs (fromℕ (M + l))
+                ∎
+            {-
+                where
+                    lem : ∀ {i : Fin (suc l)} →
+                        xs₂ i ≡ xs (cast {!   !} (fromℕ M +F i))
+                    lem {zeroF} = begin
+                        xs₂ zeroF
+                        ≡⟨⟩
+                        xs₁ (fromℕ M)
+                        ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (fromℕ M) ⟩
+                        xs (inject≤ (fromℕ M) sM≤sn)
+                        ≡⟨ {!   !} ⟩
+                        {!   !}
+                        ∎
+                    lem {sucF i} = begin
+                        xs₂ (sucF i)
+                        ≡⟨⟩
+                        xs₂^ i
+                        ≡⟨ xs₂^i≡xs[sucF[cast[inject+'[M][i]]]] i ⟩
+                        xs (sucF (cast ≡refl (inject+' M i)))
+                        ≡⟨ ≡cong (λ j → xs (sucF j)) (casti≡i {M + l} {≡refl} (inject+' M i)) ⟩
+                        xs (sucF (inject+' M i))
+                        ≡⟨ {!   !} ⟩
+                        {!   !}
+                        ∎
+            -}
+        
+            last[xs₂]∈F₁ : NA.accept na₁ (lastF xs₂)
+            last[xs₂]∈F₁ = step-∋ (NA.accept na₁) last[xs]∈F₁ (≡sym last[xs₂]≡last[xs])
+
+            ih = IH l (0<b→sa≤b+a l M 0<M) (xs₁ (fromℕ M)) {!   !} {!   !} xs₂ w₂ ≡refl {!   !} last[xs₂]∈F₁ {!   !}
+                where
+                    0<b→sa≤b+a : (a b : ℕ) → 0 < b → suc a ≤ b + a
+                    0<b→sa≤b+a zero .(suc _) (s≤s 0<b) = s≤s z≤n
+                    0<b→sa≤b+a (suc a) .(suc _) (s≤s 0<b) = s≤s (m≤n+m (suc a) _)
+
+    finalN : ∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y
+    finalN x y [x,y]∈R n = <-rec (λ n → _) lemma n x y [x,y]∈R 
+
+M≤N⇒StepM⇒FinalM⇒FinalN :
+    ∀ {M N : ℕ} → zero < M → M ≤ N
+    → (Q : Preorder)
+    → (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
+    → (R : Pred' (X₁ × X₂))
+    → (∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
+    → (∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
+    → (∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y)
+M≤N⇒StepM⇒FinalM⇒FinalN {M} {N} 0<M M≤N Q Q-is-closed-under-concat R x y stepM finalM =
+    Lemma.finalN M N 0<M M≤N Q Q-is-closed-under-concat R x y stepM finalM

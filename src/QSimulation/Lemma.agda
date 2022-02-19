@@ -49,9 +49,59 @@ ss[k'+l']≡ss[k'+l]→l'≡l {suc k'} {l'} {l} p =
 
 
 -- conversion of index of type `Fin m`
-toℕfromℕ≡id : ∀ (i : ℕ) → toℕ (fromℕ i) ≡ i
-toℕfromℕ≡id zero = ≡refl
-toℕfromℕ≡id (suc i) = ≡cong suc (toℕfromℕ≡id i)
+casti≡i : ∀ {n : ℕ} → {p : n ≡ n} → (i : Fin n) → cast p i ≡ i
+casti≡i {suc n} {≡refl} zeroF = ≡refl
+casti≡i {suc n} {≡refl} (sucF i) = ≡cong sucF (casti≡i {n} {≡refl} i)
+
+cast-sucF : ∀ {n m : ℕ} {p : n ≡ m} {q : suc n ≡ suc m} → (i : Fin n)
+  → cast q (sucF i) ≡ sucF (cast p i)
+cast-sucF {n} {.n} {≡refl} {≡refl} i = ≡refl
+
+cast-cast : ∀ {l m n : ℕ}
+  → (p : l ≡ m) → (q : m ≡ n) → (r : l ≡ n)
+  → (i : Fin l)
+  → cast q (cast p i) ≡ cast r i
+cast-cast ≡refl ≡refl ≡refl zeroF = ≡refl
+cast-cast {suc n} {.(suc n)} {.(suc n)} ≡refl ≡refl ≡refl (sucF i) =
+  begin
+  cast ≡refl (cast ≡refl (sucF i))
+  ≡⟨ ≡cong (λ j → cast ≡refl j) (cast-sucF {n} {n} {≡refl} {≡refl} i) ⟩
+  cast ≡refl (sucF (cast ≡refl i))
+  ≡⟨ cast-sucF {n} {n} {≡refl} {≡refl} (cast ≡refl i) ⟩
+  sucF (cast ≡refl (cast ≡refl i))
+  ≡⟨ ≡cong sucF (cast-cast ≡refl ≡refl ≡refl i) ⟩
+  sucF (cast ≡refl i)
+  ≡⟨ ≡refl ⟩
+  cast ≡refl (sucF i)
+  ∎
+
++F-sucF : ∀ {m n : ℕ} (i : Fin m) (j : Fin n)
+  → i +F sucF j ≡ cast (≡sym (+-suc (toℕ i) n)) (sucF (i +F j))
++F-sucF {suc m} {suc n} zeroF zeroF = ≡refl
++F-sucF {suc m} {suc n} zeroF (sucF j) =
+  begin
+  sucF (sucF j)
+  ≡⟨ ≡cong sucF (≡sym (casti≡i {suc n} {≡refl} (sucF j))) ⟩
+  sucF (cast ≡refl (sucF j))
+  ≡⟨ ≡sym (cast-sucF {suc n} {suc n} {≡refl} {≡refl} (sucF j)) ⟩
+  cast ≡refl (sucF (sucF j))
+  ∎
++F-sucF {suc m} {suc n} (sucF i) zeroF =
+  begin
+  sucF (i +F sucF zeroF)
+  ≡⟨ ≡cong sucF (+F-sucF i zeroF) ⟩
+  sucF (cast _ (sucF i +F zeroF))
+  ≡⟨ ≡sym (cast-sucF {suc (toℕ i + suc n)} {toℕ i + suc (suc n)} {≡sym (+-suc (toℕ i) (suc n))} {≡sym (+-suc (suc (toℕ i)) (suc n))} (sucF i +F zeroF)) ⟩
+  cast (≡sym (+-suc (suc (toℕ i)) (suc n))) (sucF (sucF i +F zeroF))
+  ∎
++F-sucF {suc m} {suc n} (sucF i) (sucF j) =
+  begin
+  sucF (i +F sucF (sucF j))
+  ≡⟨ ≡cong sucF (+F-sucF i (sucF j)) ⟩
+  sucF (cast (≡sym (+-suc (toℕ i) (suc n))) (sucF (i +F (sucF j))))
+  ≡⟨ ≡sym (cast-sucF {suc (toℕ i + suc n)} {toℕ i + suc (suc n)} {≡sym (+-suc (toℕ i) (suc n))} {≡sym (+-suc (suc (toℕ i)) (suc n))} (sucF (i +F (sucF j)))) ⟩
+  cast (≡sym (+-suc (suc (toℕ i)) (suc n))) (sucF (sucF (i +F (sucF j))))
+  ∎
 
 inject≤inject₁≡inject₁inject≤ : ∀ {m n} {i : Fin m} → (m≤n : m ≤ n)
   → inject≤ (inject₁ i) (s≤s m≤n) ≡ inject₁ (inject≤ i m≤n)
@@ -61,18 +111,6 @@ inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {sucF i} (s≤s m�
   sucF (inject≤ (inject₁ i) (s≤s m≤n))
   ≡⟨ ≡cong sucF (inject≤inject₁≡inject₁inject≤ m≤n) ⟩
   sucF (inject₁ (inject≤ i m≤n))
-  ∎
-
-inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] : {k m n : ℕ}
-  → (i : Fin k)
-  → (k≤m : k ≤ m) → (m≤n : m ≤ n) → (k≤n : k ≤ n)
-  → inject≤ (inject≤ i k≤m) m≤n ≡ inject≤ i k≤n
-inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] {.(suc _)} {suc m} {suc n} zeroF k≤sm sm≤sn k≤sn = ≡refl
-inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] {.(suc _)} {suc m} {suc n} (sucF i) k≤m m≤n k≤n =
-  begin
-  sucF (inject≤ (inject≤ i (≤-pred k≤m)) (≤-pred m≤n))
-  ≡⟨ ≡cong sucF (inject≤[inject≤[i][k≤m]][m≤n]≡inject≤[i][k≤n] i (≤-pred k≤m) (≤-pred m≤n) (≤-pred k≤n)) ⟩
-  sucF (inject≤ i (≤-pred k≤n))
   ∎
 
 inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] : {a b c : ℕ}
@@ -160,17 +198,13 @@ s[cast[fromℕ[a]+Fiᵇ]]≡cast[fromℕ[a]+Fsiᵇ]
   {suc a} {b} {.(toℕ (fromℕ (suc a)) + b)} {j} ≡refl q =
   ≡cong sucF (s[cast[fromℕ[a]+Fiᵇ]]≡cast[fromℕ[a]+Fsiᵇ] {a} {b} {_} {j} ≡refl (≡cong (λ i → i ∸ 1) q) )
 
-cast[fromℕ[a]]≡fromℕ[a] : ∀ {a : ℕ} → {p : suc a ≡ suc a} → cast p (fromℕ a) ≡ fromℕ a
-cast[fromℕ[a]]≡fromℕ[a] {zero} {≡refl} = ≡refl
-cast[fromℕ[a]]≡fromℕ[a] {suc a} {≡refl} = ≡cong sucF (cast[fromℕ[a]]≡fromℕ[a] {a} {≡refl})
-
 cast[fromℕ[sk']+Ffromℕ[l]]≡s[fromℕ[k'+l]] : ∀ {k' l : ℕ}
   → (p : toℕ (fromℕ (suc k')) + suc l ≡ suc (suc k' + l))
   → cast p (fromℕ (suc k') +F fromℕ l) ≡ sucF (fromℕ (k' + l))
 cast[fromℕ[sk']+Ffromℕ[l]]≡s[fromℕ[k'+l]] {zero} {zero} ≡refl = ≡refl
 cast[fromℕ[sk']+Ffromℕ[l]]≡s[fromℕ[k'+l]] {zero} {suc l} ≡refl =
   ≡cong (λ i → sucF (sucF i))
-    (cast[fromℕ[a]]≡fromℕ[a] {l} {≡refl})
+    (casti≡i {suc l} {≡refl} (fromℕ l))
 cast[fromℕ[sk']+Ffromℕ[l]]≡s[fromℕ[k'+l]] {suc k'} {l} p =
   ≡cong sucF (cast[fromℕ[sk']+Ffromℕ[l]]≡s[fromℕ[k'+l]] {k'} {l} (≡cong (λ i → i ∸ 1) p))
 
