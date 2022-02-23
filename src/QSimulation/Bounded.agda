@@ -162,8 +162,8 @@ module Lemma
     (Q@(aPreorder ∣Q∣ _ _) : Preorder)
     (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
     (R : Pred' (X₁ × X₂))
-    (stepM : ∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
-    (finalM : ∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
+    (StepM : ∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
+    (FinalM : ∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
     where
 
     k≤n⊎n<k : (k n : ℕ) → (k ≤ n) ⊎ (n < k)
@@ -172,6 +172,15 @@ module Lemma
     k≤n⊎n<k (suc k) (suc n) with k≤n⊎n<k k n
     k≤n⊎n<k (suc k) (suc n) | inj₁ k≤n = inj₁ (s≤s k≤n)
     k≤n⊎n<k (suc k) (suc n) | inj₂ n<k = inj₂ (s≤s n<k)
+
+    c : {X : Set}
+      → (n : ℕ)
+      → (w : FinWord n X)
+      → (p : ℕ) → (q : ℕ)
+      → (p≤q : p ≤ q) → (q≤n : q ≤ n) → (p≤n : p ≤ n)
+      → ∀ (i : Fin p)
+      → ((proj₁ (split w q≤n)) ↾ (s≤s p≤q)) i ≡ (proj₁ (split w p≤n)) i
+    c = {!!}
 
     lemma :
         (n : ℕ)
@@ -204,7 +213,7 @@ module Lemma
     lemma n _ x y [x,y]∈R xs w ≡refl tr last[xs]∈F₁ n<N
         -- base case
         | inj₁ sn≤M =
-            finalM x y [x,y]∈R n xs w ≡refl tr last[xs]∈F₁ sn≤M
+            FinalM x y [x,y]∈R n xs w ≡refl tr last[xs]∈F₁ sn≤M
     lemma n rec x y [x,y]∈R xs w ≡refl tr last[xs]∈F₁ n<N
         -- step case
         | inj₂ sM≤sn@(s≤s M≤n)
@@ -216,19 +225,81 @@ module Lemma
         | inj₂ sM≤sn@(s≤s M≤n)
         | l , ≡refl
         | xs₁ , xs₂^ | xs₁i≡xs[inject≤[i][sM≤sN]] | xs₂^i≡xs[sucF[cast[inject+'[M][i]]]]
-        | w₁ , w₂ | w₁i≡w[inject≤[i][M≤N]] | w₂i≡w[sucF[cast[inject+'[M][i]]]] = ({!   !} , {!   !} , {!   !} , {!   !} , {!   !})
+        | w₁ , w₂ | w₁i≡w[inject≤[i][M≤N]] | w₂i≡w[sucF[cast[inject+'[M][i]]]] =
+        {!!}
         where
+            [xs₁0,y]∈R : (xs₁ zeroF , y) ∈ R
+            [xs₁0,y]∈R = step-∋ R [x,y]∈R (≡cong (λ a → (a , y)) (≡sym xs₁0≡xs0))
+              where
+                xs₁0≡xs0 : xs₁ zeroF ≡ xs zeroF
+                xs₁0≡xs0 =
+                  begin
+                  xs₁ zeroF
+                  ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] zeroF ⟩
+                  xs zeroF
+                  ∎
+
+            tr₁ : (i : Fin M)
+              → (xs₁ (inject₁ i) , w₁ i , xs₁ (sucF i)) ∈ NA.trans na₁
+            tr₁ i = step-∋ (NA.trans na₁) (tr (inject≤ i M≤n))
+              (begin
+              xs (inject₁ (inject≤ i M≤n)) , w (inject≤ i M≤n) , xs (sucF (inject≤ i M≤n))
+              ≡⟨ ≡cong (λ a → (a , _ , _)) (≡sym p) ⟩
+              xs₁ (inject₁ i) , w (inject≤ i M≤n) , xs (sucF (inject≤ i M≤n))
+              ≡⟨ ≡cong (λ a → (_ , _ , a)) (≡sym (xs₁i≡xs[inject≤[i][sM≤sN]] (sucF i))) ⟩
+              xs₁ (inject₁ i) , w (inject≤ i M≤n) , xs₁ (sucF i)
+              ≡⟨ ≡cong (λ a → (_ , a , _)) (≡sym (w₁i≡w[inject≤[i][M≤N]] i)) ⟩
+              xs₁ (inject₁ i) , w₁ i , xs₁ (sucF i)
+              ∎)
+              where
+                p : xs₁ (inject₁ i) ≡ xs (inject₁ (inject≤ i M≤n))
+                p =
+                  begin
+                  xs₁ (inject₁ i)
+                  ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (inject₁ i) ⟩
+                  xs (inject≤ (inject₁ i) (s≤s M≤n))
+                  ≡⟨ ≡cong xs (inject≤inject₁≡inject₁inject≤ M≤n) ⟩
+                  xs (inject₁ (inject≤ i M≤n))
+                  ∎
+
+            stepM = StepM (xs₁ zeroF) y  [xs₁0,y]∈R xs₁ w₁ ≡refl tr₁
+
+            k₁ : ℕ
+            k₁ = proj₁ stepM
+
+            k₁≢0 : k₁ ≢ 0
+            k₁≢0 = proj₁ (proj₂ stepM)
+
+            sk₁≤sM : suc k₁ ≤ suc M
+            sk₁≤sM = proj₁ (proj₂ (proj₂ stepM))
+
+            k₁≤M : k₁ ≤ M
+            k₁≤M = ≤-pred sk₁≤sM
+
+            sk₁≤sn  : suc k₁ ≤ suc (M + l)
+            sk₁≤sn = ≤-trans sk₁≤sM sM≤sn
+
+            k₁≤n : k₁ ≤ M + l
+            k₁≤n = ≤-pred sk₁≤sn
+
+            w' : FINWord A
+            w' = proj₁ (proj₂ (proj₂ (proj₂ stepM)))
+
+            y' : X₂
+            y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ stepM))))
+
+            [w₁↾≤k₁,w']∈Q : ((k₁ , (w₁ ↾ sk₁≤sM)) , w') ∈ ∣Q∣
+            [w₁↾≤k₁,w']∈Q = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepM)))))
+
+            y⇝[w']y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepM))))))
+
+            [xs₁[fromℕ<[sk₁≤sM]],y']∈R : (xs₁ (fromℕ< sk₁≤sM) , y') ∈ R
+            [xs₁[fromℕ<[sk₁≤sM]],y']∈R =
+              proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepM))))))
+
+            {-
             xs₂ : FinWord (suc l) X₁
             xs₂ = (xs₁ (fromℕ M)) ∷ᶠ xs₂^
-
-            toℕfromℕM+sl≡s[M+l] : toℕ (fromℕ M) + suc l ≡ suc (M + l)
-            toℕfromℕM+sl≡s[M+l] = begin
-                toℕ (fromℕ M) + suc l
-                ≡⟨ ≡cong (λ i → i + suc l) (toℕ-fromℕ M) ⟩
-                M + suc l
-                ≡⟨ +-suc M l ⟩
-                suc (M + l)
-                ∎
 
             last[xs₂]≡last[xs] : lastF xs₂ ≡ lastF xs
             last[xs₂]≡last[xs] = begin
@@ -266,15 +337,15 @@ module Lemma
                     ∎
 
                   lem : ∀ {i : Fin (suc l)} →
-                      xs₂ i ≡ xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F i))
+                      xs₂ i ≡ xs (cast p (fromℕ M +F i))
                   lem {zeroF} = begin
                       xs₂ zeroF
                       ≡⟨⟩
                       xs₁ (fromℕ M)
                       ≡⟨ xs₁i≡xs[inject≤[i][sM≤sN]] (fromℕ M) ⟩
                       xs (inject≤ (fromℕ M) sM≤sn)
-                      ≡⟨ ≡cong xs (inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] sM≤sn toℕfromℕM+sl≡s[M+l]) ⟩
-                      xs (cast toℕfromℕM+sl≡s[M+l] (fromℕ M +F zeroF))
+                      ≡⟨ ≡cong xs (inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] sM≤sn p) ⟩
+                      xs (cast p (fromℕ M +F zeroF))
                       ∎
                   lem {sucF i} = begin
                       xs₂ (sucF i)
@@ -290,12 +361,42 @@ module Lemma
 
             last[xs₂]∈F₁ : NA.accept na₁ (lastF xs₂)
             last[xs₂]∈F₁ = step-∋ (NA.accept na₁) last[xs]∈F₁ (≡sym last[xs₂]≡last[xs])
+            -}
 
-            ih = IH l (0<b→sa≤b+a l M 0<M) (xs₁ (fromℕ M)) {!   !} {!   !} xs₂ w₂ ≡refl {!   !} last[xs₂]∈F₁ {!   !}
+            a : {!!}
+            a with n-k k₁≤M | w₁i≡wi w₁ k₁≤M
+              | n-k k₁≤n | split w k₁≤n | w₁i≡wi w k₁≤n | w₂i≡w[k+i] {A} {_} {k₁} w k₁≤n
+            a | l' {- = M - k₁ -} , k₁+l≡M | w₁↾≤k₁≡
+              | k₂ , k₁+k₂≡M+l | u₁ , u₂ | u₁i≡ | u₂i≡ = {!!}
+              where
+                {-
+                    c : {X : Set}
+                    → (n : ℕ)
+                    → (w : FinWord n X)
+                    → (l : ℕ) → (k : ℕ)
+                    → (k≤l : k ≤ l) → (l≤n : l ≤ n) → (k≤n : k ≤ n)
+                    → ∀ (i : {!!})
+                    → ((proj₁ (split w l≤n)) ↾ (s≤s k≤l)) i ≡ (proj₁ (split w k≤n)) i
+                -}
+                d = c {A} (M + l) w k₁ M k₁≤M M≤n k₁≤n
+                u₁≡w₁↾≤k : ∀ (i : Fin k₁) →  (w₁ ↾ sk₁≤sM) i ≡ u₁ i
+                u₁≡w₁↾≤k i = begin
+                  (w₁ ↾ sk₁≤sM) i
+                  ≡⟨ {!!} ⟩
+                  {!!}
+                  ≡⟨ d i ⟩
+                  {!!}
+                  ≡⟨ {!!} ⟩
+                  u₁ i
+                  ∎
+
+            {-
+            ih = IH l (0<b→sa≤b+a l M 0<M) (xs₁ (fromℕ M)) y {!   !} xs₂ w₂ ≡refl {!   !} last[xs₂]∈F₁ {!   !}
                 where
                     0<b→sa≤b+a : (a b : ℕ) → 0 < b → suc a ≤ b + a
                     0<b→sa≤b+a zero .(suc _) (s≤s 0<b) = s≤s z≤n
                     0<b→sa≤b+a (suc a) .(suc _) (s≤s 0<b) = s≤s (m≤n+m (suc a) _)
+                    -}
 
     finalN : ∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y
     finalN x y [x,y]∈R n = <-rec (λ n → _) lemma n x y [x,y]∈R 
