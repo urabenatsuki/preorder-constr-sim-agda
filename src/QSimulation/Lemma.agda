@@ -6,6 +6,8 @@ open import Data.Nat.Properties
 open import Data.Fin
   using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
   renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
+open import Data.Fin.Properties
+  using (toℕ-fromℕ)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; inspect; [_])
   renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
@@ -47,6 +49,10 @@ ss[k'+l']≡ss[k'+l]→l'≡l {zero} {l'} {.l'} ≡refl = ≡refl
 ss[k'+l']≡ss[k'+l]→l'≡l {suc k'} {l'} {l} p =
   ss[k'+l']≡ss[k'+l]→l'≡l {k'} {l'} {l} (≡cong (λ i → i ∸ 1) p)
 
+s≤s-≤ : ∀ {n m : ℕ} → (n≤m : n ≤ m) (sn≤sm : suc n ≤ suc m) → (s≤s n≤m) ≡ sn≤sm
+s≤s-≤ {zero} {zero} z≤n (s≤s z≤n) = ≡refl
+s≤s-≤ {zero} {suc m} z≤n (s≤s z≤n) = ≡refl
+s≤s-≤ {suc n} {.(suc _)} (s≤s n≤m) (s≤s sn≤sm) = ≡cong s≤s (s≤s-≤ n≤m sn≤sm)
 
 -- conversion of index of type `Fin m`
 casti≡i : ∀ {n : ℕ} → {p : n ≡ n} → (i : Fin n) → cast p i ≡ i
@@ -122,6 +128,26 @@ fromℕ-+F-+ (suc m) n {p} = begin
   sucF (fromℕ (m + n))
   ∎
 
+fromℕ-+F-+-cast : (l m n : ℕ)
+  → {p : toℕ (fromℕ m) + suc n ≡ l}
+  → {q : suc (m + n) ≡ l}
+  → (cast p (fromℕ m +F fromℕ n)) ≡ (cast q (fromℕ (m + n)))
+fromℕ-+F-+-cast .(suc (m + n)) m n {p} {≡refl} =
+  begin
+  (cast p (fromℕ m +F fromℕ n))
+  ≡⟨ fromℕ-+F-+ m n {p} ⟩
+  fromℕ (m + n)
+  ≡⟨ ≡sym (casti≡i {suc (m + n)} {≡refl} (fromℕ (m + n))) ⟩
+  cast ≡refl (fromℕ (m + n))
+  ∎
+
+cast-fromℕ : (l m n : ℕ)
+  → (p : suc m ≡ l) → (q : suc n ≡ l)
+  → (r : m ≡ n)
+  → cast p (fromℕ m) ≡ cast q (fromℕ n)
+cast-fromℕ .(suc m) m .m ≡refl ≡refl ≡refl = ≡refl
+
+
 inject≤inject₁≡inject₁inject≤ : ∀ {m n} {i : Fin m} → (m≤n : m ≤ n)
   → inject≤ (inject₁ i) (s≤s m≤n) ≡ inject₁ (inject≤ i m≤n)
 inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {zeroF} (s≤s m≤n) = ≡refl
@@ -130,6 +156,50 @@ inject≤inject₁≡inject₁inject≤ {.(suc _)} {.(suc _)} {sucF i} (s≤s m�
   sucF (inject≤ (inject₁ i) (s≤s m≤n))
   ≡⟨ ≡cong sucF (inject≤inject₁≡inject₁inject≤ m≤n) ⟩
   sucF (inject₁ (inject≤ i m≤n))
+  ∎
+
+inject≤[fromℕ<[sa≤b][b≤c]]≡inject≤[fromℕ[a]][sa≤c] : {a b c : ℕ}
+  → (sa≤b : suc a ≤ b)
+  → (b≤c : b ≤ c)
+  → (sa≤c : suc a ≤ c)
+  → inject≤ (fromℕ< sa≤b) (b≤c) ≡ inject≤ (fromℕ a) sa≤c
+inject≤[fromℕ<[sa≤b][b≤c]]≡inject≤[fromℕ[a]][sa≤c] {zero} {.(suc _)} {.(suc _)} (s≤s sa≤b) (s≤s b≤c) (s≤s sa≤c) = ≡refl
+inject≤[fromℕ<[sa≤b][b≤c]]≡inject≤[fromℕ[a]][sa≤c] {suc a} {.(suc _)} {.(suc _)} (s≤s sa≤b) (s≤s b≤c) (s≤s sa≤c) =
+  begin
+  sucF (inject≤ (fromℕ< sa≤b) b≤c)
+  ≡⟨ ≡cong sucF (inject≤[fromℕ<[sa≤b][b≤c]]≡inject≤[fromℕ[a]][sa≤c] sa≤b b≤c sa≤c) ⟩
+  sucF (inject≤ (fromℕ a) sa≤c)
+  ∎
+
++F-inject₁ : {b c : ℕ}
+  → (a : Fin b)
+  → (i : Fin c)
+  → (p : toℕ a + suc c ≡ suc (toℕ a + c))
+  → cast p (a +F inject₁ i) ≡ inject₁ (a +F i)
++F-inject₁ {.(suc _)} {.(suc _)} zeroF zeroF p = ≡refl
++F-inject₁ {.(suc _)} {.(suc _)} zeroF (sucF i) p = begin
+  sucF (cast (≡cong (λ z → z ∸ 1) p) (inject₁ i))
+  ≡⟨ ≡cong sucF (casti≡i {_} {≡refl} (inject₁ i)) ⟩
+  sucF (inject₁ i)
+  ∎
++F-inject₁ {.(suc _)} {c} (sucF a) i p = begin
+  sucF (cast (≡cong (λ z → z ∸ 1) p) (a +F inject₁ i))
+  ≡⟨ ≡cong sucF (+F-inject₁ a i (≡cong (λ z → z ∸ 1) p)) ⟩
+  sucF (inject₁ (a +F i))
+  ∎
+
+cast-fromℕ-+F-inject₁ : {b c d : ℕ}
+  → (a : Fin d)
+  → (i : Fin b)
+  → (p : toℕ a + suc b ≡ suc c)
+  → (q : toℕ a + b ≡ c)
+  → cast p (a +F inject₁ i) ≡ inject₁ (cast q (a +F i))
+cast-fromℕ-+F-inject₁ {b} {.(toℕ a + b)} a i p ≡refl = begin
+  cast p (a +F inject₁ i)
+  ≡⟨ +F-inject₁ a i p ⟩
+  inject₁ (a +F i)
+  ≡⟨ ≡cong inject₁ (≡sym (casti≡i {_} {≡refl} (a +F i))) ⟩
+  inject₁ (cast ≡refl (a +F i))
   ∎
 
 inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c] : {a b c : ℕ}
@@ -188,6 +258,47 @@ s[k+iˡ]≡k+siˡ {suc k} {sl@.(suc _)} {.(toℕ (fromℕ k) + suc (suc _))} {su
 [inject+]≡[+F] {zero} {.n} {n} i ≡refl ≡refl = ≡refl
 [inject+]≡[+F] {suc k} {suc l} {.(suc k + suc l)} i ≡refl q =
   ≡cong sucF ([inject+]≡[+F] {k} i ≡refl (≡cong (λ j → j ∸ 1) q))
+
+cast-inject+'-fromℕ : ∀ (a b : ℕ)
+    → (i : Fin a)
+    → (q : toℕ (fromℕ b) + suc a ≡ suc (b + a))
+    → inject+' (suc b) i ≡ cast q (fromℕ b +F sucF i)
+cast-inject+'-fromℕ (suc a) b i q = begin
+    inject+' (suc b) i
+    ≡⟨⟩
+    sucF (inject+' b i)
+    ≡⟨ ≡cong sucF (≡sym (casti≡i {b + suc a} {≡refl} (inject+' b i))) ⟩
+    sucF (cast ≡refl (inject+' b i))
+    ≡⟨ ≡cong sucF ([inject+]≡[+F] {b} i ≡refl p₂) ⟩
+    sucF (cast p₂ (fromℕ b +F i))
+    ≡⟨ cast-sucF {toℕ (fromℕ b) + suc a} {b + suc a} {p₂} {p₃} (fromℕ b +F i) ⟩
+    cast p₃ (sucF (fromℕ b +F i))
+    ≡⟨ ≡sym (cast-cast p₁ q p₃  (sucF (fromℕ b +F i))) ⟩
+    cast q (cast p₁ (sucF (fromℕ b +F i)))
+    ≡⟨ ≡cong (λ i → cast q i) (≡sym (+F-sucF (fromℕ b) i)) ⟩
+    cast q (fromℕ b +F sucF i)
+    ∎
+    where
+        p₁ : suc (toℕ (fromℕ b) + suc a) ≡ toℕ (fromℕ b) + suc (suc a)
+        p₁ = ≡sym (+-suc (toℕ (fromℕ b)) (suc a))
+        p₂ : toℕ (fromℕ b) + suc a ≡ b + suc a
+        p₂ = ≡cong (λ i → (i + suc a)) (toℕ-fromℕ b)
+        p₃ : suc (toℕ (fromℕ b) + suc a) ≡ suc (b + suc a)
+        p₃ = ≡cong suc p₂
+                    
+cast-inject+'-cast-fromℕ : ∀ (a b c : ℕ)
+    → (i : Fin a)
+    → (p : suc (b + a) ≡ c)
+    → (q : toℕ (fromℕ b) + suc a ≡ c)
+    → cast p (inject+' (suc b) i) ≡ cast q (fromℕ b +F sucF i)
+cast-inject+'-cast-fromℕ a b .(suc (b + a)) i ≡refl q = begin
+    cast ≡refl (inject+' (suc b) i)
+    ≡⟨ casti≡i {suc (b + a)} {≡refl} (sucF (inject+' b i)) ⟩
+    inject+' (suc b) i
+    ≡⟨ cast-inject+'-fromℕ a b i q ⟩
+    cast q (fromℕ b +F sucF i)
+    ∎
+
 
 inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] : ∀ {a b c : ℕ}
   → (sa≤b : suc a ≤ b)
@@ -339,4 +450,5 @@ module Transition
       ≡⟨ ≡cong (λ a → y·y' (inject₁ i) , concat w w' i , a) y'[sj']≡tail[y]·y'[i] ⟩
       y·y' (inject₁ i) , concat w w' i , concat (tailF y) (tailF y') i
       ∎)
+ 
  

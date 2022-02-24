@@ -338,20 +338,7 @@ module Soundness
               ∎)
   
           last[ys·ys']∈F₂ : NA.accept na₂ (ys·ys' (fromℕ (m + m')))
-          last[ys·ys']∈F₂ = step-∋ (NA.accept na₂) last[ys']∈F₂ (last ys ys' ys'0≡ys[m])
-            where
-              last : {s t : ℕ} → (a : Fin (suc s) → X₂) → (b : Fin (suc t) → X₂)
-                → (b0≡last[a] : b zeroF ≡ a (fromℕ s))
-                → b (fromℕ t) ≡ concat a (tailF b) (fromℕ (s + t))
-              last {zero} {zero} a b b0≡last[a] = b0≡last[a]
-              last {zero} {suc t} a b b0≡last[a] = ≡refl
-              last {suc s} {t} a b b0≡last[a] = begin
-                b (fromℕ t)
-                ≡⟨ last {s} {t} (tailF a) b b0≡last[a] ⟩
-                concat (tailF a) (tailF b) (fromℕ (s + t))
-                ≡⟨⟩
-                concat a (tailF b) (fromℕ (suc s + t))
-                ∎
+          last[ys·ys']∈F₂ = step-∋ (NA.accept na₂) last[ys']∈F₂ (last-concat {X₂} ys ys' ys'0≡ys[m])
   
           -- proof of (w , w'·w'') ∈ Q
           -- use concat-closedness of Q
