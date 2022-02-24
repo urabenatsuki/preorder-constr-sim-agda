@@ -1,13 +1,13 @@
 open import NA.Base
 module QSimulation.Bounded
-    (X₁ X₂ A : Set)
+    (A X₁ X₂ : Set)
     (na₁@(anNA ⇝₁ _ F₁) : NA X₁ A)
     (na₂@(anNA ⇝₂ _ F₂) : NA X₂ A)
     where
 
 open import Data.Nat
 open import Data.Nat.Properties
-    using (≤-trans; m≤n+m; m≤m+n; +-suc; <⇒≤)
+    using (≤-trans; ≤-step; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
 open import Data.Nat.Induction
     using (<-rec)
 open import Data.Fin
@@ -32,13 +32,15 @@ open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
     using
-      ( inject≤inject₁≡inject₁inject≤
+      ( k≤n⊎n<k
+      ; inject≤inject₁≡inject₁inject≤
       ; inject≤[fromℕ<[a≤b]][b≤c]≡fromℕ<[a≤c]
       ; s≤s-≤
       ; casti≡i; cast-sucF; +F-sucF; cast-cast
       ; [inject+]≡[+F]
       ; cast-fromℕ-+F-inject₁
       ; fromℕ-+F-+-cast; cast-fromℕ
+      ; inject≤[i][n≤n]≡i
       ; inject≤[fromℕ<[sa≤b][b≤c]]≡inject≤[fromℕ[a]][sa≤c]
       ; cast-inject+'-cast-fromℕ
       ; inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0]
@@ -163,21 +165,15 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y St
                 xs (fromℕ< sk≤sN)
                 ∎))
 
+
 module Lemma
-    (M N : ℕ) (0<M : zero < M) (M≤N : M ≤ N)
+    (M N : ℕ) (M≤N : M ≤ N)
     (Q@(aPreorder ∣Q∣ _ _) : Preorder)
     (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
     (R : Pred' (X₁ × X₂))
     (StepM : ∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
     (FinalM : ∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
     where
-
-    k≤n⊎n<k : (k n : ℕ) → (k ≤ n) ⊎ (n < k)
-    k≤n⊎n<k zero n = inj₁ z≤n
-    k≤n⊎n<k (suc k) zero = inj₂ (s≤s z≤n)
-    k≤n⊎n<k (suc k) (suc n) with k≤n⊎n<k k n
-    k≤n⊎n<k (suc k) (suc n) | inj₁ k≤n = inj₁ (s≤s k≤n)
-    k≤n⊎n<k (suc k) (suc n) | inj₂ n<k = inj₂ (s≤s n<k)
 
     lemma :
         (n : ℕ)
@@ -211,7 +207,7 @@ module Lemma
         -- base case
         | inj₁ sn≤M =
             FinalM x y [x,y]∈R n xs w ≡refl tr-xs-w last[xs]∈F₁ sn≤M
-    lemma n rec x y [x,y]∈R xs w ≡refl tr-xs-w last[xs]∈F₁ n<N
+    lemma n IH x y [x,y]∈R xs w ≡refl tr-xs-w last[xs]∈F₁ n<N
         -- step case
         | inj₂ sM≤sn@(s≤s M≤n)
         -- split `xs` at `suc M`
@@ -223,7 +219,6 @@ module Lemma
         | l , ≡refl
         | xs₁ , xs₂^ | xs₁i≡xs[inject≤[i][sM≤sn]] | xs₂^i≡xs[sucF[cast[inject+'[M][i]]]]
         | w₁ , w₂ | w₁i≡w[inject≤[i][M≤n]] | w₂i≡w[sucF[cast[inject+'[M][i]]]] = construction
-        -- ({!!} , y'' , {!   !} , ({!   !}  , {!   !} , {!   !} , {!   !}) ,  y''∈F₂)
         where
             [xs₁0,y]∈R : (xs₁ zeroF , y) ∈ R
             [xs₁0,y]∈R = step-∋ R [x,y]∈R (≡cong (λ a → (a , y)) (≡sym xs₁0≡xs0))
@@ -545,12 +540,137 @@ module Lemma
     finalN x y [x,y]∈R n = <-rec (λ n → _) lemma n x y [x,y]∈R 
 
 M≤N⇒StepM⇒FinalM⇒FinalN :
-    ∀ {M N : ℕ} → zero < M → M ≤ N
+    ∀ {M N : ℕ} → M ≤ N
     → (Q : Preorder)
-    → (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
+    → [ Q ]-is-closed-under-concat
     → (R : Pred' (X₁ × X₂))
     → (∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y)
-M≤N⇒StepM⇒FinalM⇒FinalN {M} {N} 0<M M≤N Q Q-is-closed-under-concat R x y stepM finalM =
-    Lemma.finalN M N 0<M M≤N Q Q-is-closed-under-concat R x y stepM finalM
+M≤N⇒StepM⇒FinalM⇒FinalN {M} {N} M≤N Q Q-is-closed-under-concat R x y stepM finalM =
+    Lemma.finalN M N M≤N Q Q-is-closed-under-concat R x y stepM finalM
+
+M≤N⇒Mbounded⇒Nbounded :
+    ∀ {M N : ℕ} → M ≤ N
+    → (Q : Preorder)
+    → [ Q ]-is-closed-under-concat
+    → [ M ]-bounded-[ Q ]-constrained-simulation
+    → [ N ]-bounded-[ Q ]-constrained-simulation
+M≤N⇒Mbounded⇒Nbounded {M} {N} M≤N Q Q-is-closed-under-concat (QSimulationBase.aBoundedConstrainedSimulation R FinalM StepM) =
+    QSimulationBase.aBoundedConstrainedSimulation R FinalN StepN
+    where
+        StepN : ∀ x y → (x , y) ∈ R → Step[ N ][ Q ] R x y
+        StepN x y [x,y]∈R = M≤N⇒StepM⇒StepN {M} {N} M≤N Q R x y (StepM x y [x,y]∈R)
+        
+        FinalN : ∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y
+        FinalN = M≤N⇒StepM⇒FinalM⇒FinalN M≤N Q Q-is-closed-under-concat R StepM FinalM
+
+FinalM⇒Final :
+    (M : ℕ)
+    → (0<M : zero < M)
+    → (Q : Preorder)
+    → (R : Pred' (X₁ × X₂))
+    → (x : X₁) → (y : X₂)
+    → Final[ M ][ Q ] R x y
+    → Final[ Q ] R x y
+FinalM⇒Final M 0<M (aPreorder ∣Q∣ Qrefl Qtrans) R x y FinalM x∈F₁
+    {- ∃[ w' ] ∃[ y' ] ((zero , (λ ())) , w') ∈ ∣Q∣ × (w' ∈ FINWord-from[ y ]to[ y' ] na₂) × (y' ∈ NA.accept na₂) -}
+    with FinalM zero (λ i → x) (λ ()) ≡refl (λ ()) x∈F₁ 0<M
+FinalM⇒Final M 0<M (aPreorder ∣Q∣ Qrefl Qtrans) R x y FinalM x∈F₁
+    | w' , y' , [0length,w']∈Q , y⇝[w']y' , y'∈F₂ =
+    ( w' , y' , y⇝[w']y' , y'∈F₂ , [emptyF,w']∈Q )
+    where
+        [emptyF,w']∈Q : ((0 , emptyF) , w') ∈ ∣Q∣
+        [emptyF,w']∈Q = step-∋ ∣Q∣ [0length,w']∈Q
+            (begin
+            (zero , (λ ())) , w'
+            ≡⟨ ≡cong (λ a → (zero , a) , w') (ex λ ()) ⟩
+            (zero , emptyF) , w'
+            ∎)
+
+StepM⇒FinalM⇒Step :
+    (M : ℕ)
+    → (Q : Preorder)
+    → [ Q ]-is-closed-under-concat
+    → (R : Pred' (X₁ × X₂))
+    → (∀ x y → (x , y) ∈ R → Step[ M ][ Q ] R x y)
+    → (∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
+    → (∀ x y → (x , y) ∈ R → Step[ Q ] R x y)
+StepM⇒FinalM⇒Step M Q _ R StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+    -- case analysis
+    with k≤n⊎n<k (suc (suc n)) M
+StepM⇒FinalM⇒Step M Q _ R StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+    -- n + 1 < M
+    | inj₁ sn<M
+    -- use FinalM
+    with FinalM x y [x,y]∈R (suc n) xs w x≡xs0 tr-xs-w last[xs]∈F₁ sn<M
+StepM⇒FinalM⇒Step M (aPreorder ∣Q∣ Qrefl Qtrans) _ R StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+    | inj₁ sn<M
+    | (l , w') , y' , [w,w']∈Q , y⇝[w']y' , y'∈F₂ =
+    (suc n , (λ ()) , ≤-reflexive ≡refl , (l , w') , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂) )
+    where
+        lem : (i : Fin (suc n)) → proj₁ (split w (≤-reflexive ≡refl)) i ≡ w i
+        lem i = begin
+            proj₁ (split w (≤-reflexive ≡refl)) i
+            ≡⟨ w₁i≡wi w (≤-reflexive ≡refl) i ⟩
+            w (inject≤ i (≤-reflexive ≡refl))
+            ≡⟨ ≡cong w (inject≤[i][n≤n]≡i i (≤-reflexive ≡refl)) ⟩
+            w i
+            ∎
+        [w↾sn≤sn,w']∈Q : ((suc n , (w ↾ ≤-reflexive ≡refl)) , (l , w')) ∈ ∣Q∣
+        [w↾sn≤sn,w']∈Q = step-∋ ∣Q∣ [w,w']∈Q
+            (begin
+            (suc n , w) , (l , w')
+            ≡⟨ ≡cong (λ a → (suc n , a) , (l , w')) (≡sym (ex lem)) ⟩
+            (suc n , proj₁ (split w (≤-reflexive ≡refl))) , (l , w')
+            ≡⟨⟩
+            (suc n , (w ↾ (s≤s (≤-reflexive ≡refl)))) , (l , w')
+            ∎)
+StepM⇒FinalM⇒Step M Q Q-is-closed-under-concat R StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+    -- M ≤ n + 1
+    | inj₂ (s≤s M≤sn)
+    -- use M≤N⇒StepM⇒FinalM⇒finalN
+    with M≤N⇒StepM⇒FinalM⇒FinalN (≤-step M≤sn) Q Q-is-closed-under-concat R StepM FinalM
+StepM⇒FinalM⇒Step M Q Q-is-closed-under-concat R StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+    | inj₂ (s≤s M≤sn)
+    | StepN+1
+    with StepN+1 x y [x,y]∈R (suc n) xs w x≡xs0 tr-xs-w last[xs]∈F₁ (≤-reflexive ≡refl)
+StepM⇒FinalM⇒Step M (aPreorder ∣Q∣ Qrefl Qtrans) Q-is-closed-under-concat R StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+    | inj₂ (s≤s M≤sn)
+    | StepN+1
+    | (l , w') , y' , [w,w']∈Q , y⇝[w']y' , y'∈F₂ =
+    (suc n , (λ ()) , (≤-reflexive ≡refl) , (l , w') , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂))
+    where
+        lem : (i : Fin (suc n)) → proj₁ (split w (≤-reflexive ≡refl)) i ≡ w i
+        lem i = begin
+            proj₁ (split w (≤-reflexive ≡refl)) i
+            ≡⟨ w₁i≡wi w (≤-reflexive ≡refl) i ⟩
+            w (inject≤ i (≤-reflexive ≡refl))
+            ≡⟨ ≡cong w (inject≤[i][n≤n]≡i i (≤-reflexive ≡refl)) ⟩
+            w i
+            ∎
+        [w↾sn≤sn,w']∈Q : ((suc n , (w ↾ ≤-reflexive ≡refl)) , (l , w')) ∈ ∣Q∣
+        [w↾sn≤sn,w']∈Q = step-∋ ∣Q∣ [w,w']∈Q
+            (begin
+            (suc n , w) , (l , w')
+            ≡⟨ ≡cong (λ a → (suc n , a) , (l , w')) (≡sym (ex lem)) ⟩
+            (suc n , proj₁ (split w (≤-reflexive ≡refl))) , (l , w')
+            ≡⟨⟩
+            (suc n , (w ↾ (s≤s (≤-reflexive ≡refl)))) , (l , w')
+            ∎)
+
+Mbounded⇒unbounded :
+    (M : ℕ)
+    → (0<M : zero < M)
+    → (Q : Preorder)
+    → [ Q ]-is-closed-under-concat
+    → [ M ]-bounded-[ Q ]-constrained-simulation
+    → [ Q ]-constrained-simulation
+Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat (QSimulationBase.aBoundedConstrainedSimulation R FinalM StepM) =
+    QSimulationBase.aConstrainedSimulation R Final Step
+    where
+        Final : ∀ x y → (x , y) ∈ R → Final[ Q ] R x y
+        Final x y [x,y]∈R = FinalM⇒Final M 0<M Q R x y (FinalM x y [x,y]∈R)
+
+        Step : ∀ x y → (x , y) ∈ R → Step[ Q ] R x y
+        Step x y [x,y]∈R = StepM⇒FinalM⇒Step M Q Q-is-closed-under-concat R StepM FinalM x y [x,y]∈R

@@ -37,6 +37,13 @@ k≢0→k<sn→sk'≡k : ∀ {k n : ℕ}
 k≢0→k<sn→sk'≡k {zero} {n} p (s≤s q) = contradiction ≡refl p
 k≢0→k<sn→sk'≡k {suc k} {n} p q = (k , ≡refl)
 
+k≤n⊎n<k : (k n : ℕ) → (k ≤ n) ⊎ (n < k)
+k≤n⊎n<k zero n = inj₁ z≤n
+k≤n⊎n<k (suc k) zero = inj₂ (s≤s z≤n)
+k≤n⊎n<k (suc k) (suc n) with k≤n⊎n<k k n
+k≤n⊎n<k (suc k) (suc n) | inj₁ k≤n = inj₁ (s≤s k≤n)
+k≤n⊎n<k (suc k) (suc n) | inj₂ n<k = inj₂ (s≤s n<k)
+
 s[k+l']≡ss[k+l]→l'≡sl : ∀ {k l l' : ℕ}
   → suc (k + l') ≡ suc (suc (k + l)) → l' ≡ suc l
 s[k+l']≡ss[k+l]→l'≡sl {zero} {l} {.(suc l)} ≡refl = ≡refl
@@ -299,6 +306,12 @@ cast-inject+'-cast-fromℕ a b .(suc (b + a)) i ≡refl q = begin
     cast q (fromℕ b +F sucF i)
     ∎
 
+inject≤[i][n≤n]≡i : {n : ℕ}
+  → (i : Fin n)
+  → (n≤n : n ≤ n)
+  → inject≤ i n≤n ≡ i
+inject≤[i][n≤n]≡i {.(suc _)} zeroF n≤n = ≡refl
+inject≤[i][n≤n]≡i {.(suc _)} (sucF i) n≤n = ≡cong sucF (inject≤[i][n≤n]≡i i (≤-pred n≤n))
 
 inject≤[fromℕ[a]][a<b]≡cast[fromℕ[a]+F0] : ∀ {a b c : ℕ}
   → (sa≤b : suc a ≤ b)

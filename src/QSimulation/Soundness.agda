@@ -28,6 +28,8 @@ open import QSimulation.Base
 open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
+open import QSimulation.Bounded A X₁ X₂ na₁ na₂
+  using (Mbounded⇒unbounded)
 
 module Soundness
   (Q@(aPreorder ∣Q∣ Qrefl Qtrans) : Preorder)
@@ -312,6 +314,8 @@ module Soundness
           -- proof of y ⇝[w'·w''] y'
           open QSimulation.Lemma.Transition X₂ A na₂ m m' ys ys' ys'0≡ys[m] w' w'' trw' trw''
           trw'w'' : (i : Fin (m + m')) → NA.trans na₂ (ys·ys' (inject₁ i) , concat w' w'' i , ys·ys' (sucF i))
+          trw'w'' i = tr i
+          {-
           trw'w'' i with lemma-for-trans-state {m} {m'} ys ys' ys'0≡ys[m] i | lemma-for-trans-word {m} {m'} w' w'' i
           trw'w'' i | p | q with splitFin {m} {m'} i
           trw'w'' i | ys[i']≡ys·ys'[i] , ys[si']≡tail[ys]·ys'[i] | q | inj₁ i' =
@@ -336,7 +340,8 @@ module Soundness
               ≡⟨ ≡cong (λ a → (concat ys (tailF ys') (inject₁ i) , a , concat (tailF ys) (tailF ys') i)) q ⟩
               concat ys (tailF ys') (inject₁ i) , concat w' w'' i , concat (tailF ys) (tailF ys') i
               ∎)
-  
+          -}
+
           last[ys·ys']∈F₂ : NA.accept na₂ (ys·ys' (fromℕ (m + m')))
           last[ys·ys']∈F₂ = step-∋ (NA.accept na₂) last[ys']∈F₂ (last-concat {X₂} ys ys' ys'0≡ys[m])
   
@@ -419,3 +424,15 @@ module Soundness
         R₁ [R₁]⊆[≤[≡]] R₂ [R₂]⊆[≤[≡]] R-as-[Q,R₁,R₂]-sim [x,y] [x,y]∈R
 open Soundness using (soundness) public
 
+soundness-of-bounded-simulation :
+  (M : ℕ)
+  → (0<M : zero < M)
+  → (Q : Preorder)
+  → (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
+  → (Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) : [ M ]-bounded-[ Q ]-constrained-simulation)
+  → ((x , y) : X₁ × X₂) → (x , y) ∈ R → x ≤[ na₁ , na₂ , Q ] y
+soundness-of-bounded-simulation M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) (x , y) [x,y]∈R =
+  soundness Q Q-is-closed-under-concat unbounded-Qconstrained-simulation (x , y) [x,y]∈R
+  where
+    unbounded-Qconstrained-simulation : [ Q ]-constrained-simulation
+    unbounded-Qconstrained-simulation = Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation

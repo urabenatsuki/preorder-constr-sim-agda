@@ -164,6 +164,13 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- (xₖ R₁RR₂ y') or (k ≡ suc n and y' ∈ F₂)
     ((xs (fromℕ< k<ssn) , y') ∈ (R₁ ∘ᵣ R ∘ᵣ R₂) ⊎  (k ≡ (suc n) × NA.accept na₂ y'))
   
+  record [_]-bounded-[_]-constrained-simulation (M : ℕ) (Q : Preorder) : Set₁ where
+    constructor aBoundedConstrainedSimulation
+    field
+      R : Pred' (X₁ × X₂)
+      final : ∀ x y → R (x , y) → Final[ M ][ Q ] R x y
+      step : ∀ x y → R (x , y) → Step[ M ][ Q ] R x y
+  
   record [_]-constrained-simulation (Q : Preorder) : Set₁ where
     constructor aConstrainedSimulation
     field
