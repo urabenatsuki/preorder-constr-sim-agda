@@ -18,9 +18,12 @@ Monotonicity-≤ : {A X X' : Set} {na : NA X A} {na' : NA X' A} →
 Monotonicity-≤ Q Q' Q⊆Q' (x , y) x≤[Q]y w w∈L*[x] with x≤[Q]y w w∈L*[x]
 ... | (w' , w'∈L*[y] , [w,w']∈Q) = (w' ,  w'∈L*[y] , Q⊆Q' [w,w']∈Q)
 
+-- properties of M-bounded Q-constrained simulation
+open import QSimulation.Bounded public
+
 -- soundness
 open import QSimulation.Soundness public
-  using (soundness)
+  using (soundness; soundness-of-bounded-simulation)
 
 -- soundness of up-to version
 open import QSimulation.SoundnessUpto public

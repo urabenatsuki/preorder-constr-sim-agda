@@ -185,6 +185,23 @@ l≡k∧k≤l→[i↦w[inj[i][k≤l]]]≡[l≡k⋆w] {A} {k} {.k} {refl} {k≤k}
   w
   ∎
 
+inj[m][w]≡inj[n][λi→w[cast[i]]] : {A : Set}
+  → (m n : ℕ)
+  → (w : FinWord m A)
+  → (p : n ≡ m)
+  → inj m w ≡ inj n (λ i → w (cast p i))
+inj[m][w]≡inj[n][λi→w[cast[i]]] m .m w refl = begin
+  m , w
+  ≡⟨⟩
+  m , (λ i → w i)
+  ≡⟨ cong (λ a → m , a) (ex (λ i → cong w (i≡casti refl i))) ⟩
+  m , (λ i → w (cast refl i))
+  ∎
+  where
+    i≡casti : ∀ {n : ℕ} → (p : n ≡ n) → (i : Fin n) → i ≡ cast p i
+    i≡casti {.(suc _)} refl 0F = refl
+    i≡casti {.(suc _)} refl (sucF i) = cong sucF (i≡casti refl i)
+
 -- inj n (λ i → w (inject≤ i k≤n+0))   ≡   inj (n + 0) w
 -- This proposition is used in the proof of soundness of Q-simulation
 Prop[inj[n]w[inj≤i]≡inj[n+0]w] : {A : Set} → {k n : ℕ}
@@ -206,3 +223,18 @@ inj[n]w[inj≤i]≡inj[n+0]w {A} {k} {.k} w refl k≤n+0 = begin
   ≡⟨ sym (path-lifting-property w a+0≡a ) ⟩
   inj (k + zero) w
   ∎
+
+
+last-concat : {X : Set} → {s t : ℕ} → (a : Fin (suc s) → X) → (b : Fin (suc t) → X)
+  → (b0≡last[a] : b 0F ≡ a (fromℕ s))
+  → b (fromℕ t) ≡ concat a (tailF b) (fromℕ (s + t))
+last-concat {X₂} {zero} {zero} a b b0≡last[a] = b0≡last[a]
+last-concat {X₂} {zero} {suc t} a b b0≡last[a] = refl
+last-concat {X₂} {suc s} {t} a b b0≡last[a] = begin
+  b (fromℕ t)
+  ≡⟨ last-concat {X₂} {s} {t} (tailF a) b b0≡last[a] ⟩
+  concat (tailF a) (tailF b) (fromℕ (s + t))
+  ≡⟨⟩
+  concat a (tailF b) (fromℕ (suc s + t))
+  ∎
+  

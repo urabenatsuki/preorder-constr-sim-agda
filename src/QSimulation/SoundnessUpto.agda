@@ -6,11 +6,13 @@ module QSimulation.SoundnessUpto
   where
 
 open import Data.Nat
-open import Data.Nat.Properties
+open import Data.Nat.Properties using(+-suc; ≤-trans; m≤n+m)
 open import Data.Nat.Induction using (<-rec)
 open import Data.Fin
   using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
   renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
+open import Data.Fin.Properties
+  using (toℕ-fromℕ)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; inspect; [_])
   renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
@@ -174,10 +176,10 @@ module Soundness
         ∎
 
       toℕfromℕk+l≡sn : toℕ (fromℕ k) + l ≡ suc n
-      toℕfromℕk+l≡sn = (≡cong (λ i → i + l) (toℕfromℕ≡id k))
+      toℕfromℕk+l≡sn = (≡cong (λ i → i + l) (toℕ-fromℕ k))
   
       toℕfromℕk+sl≡ssn : toℕ (fromℕ k) + suc l ≡ suc (suc n)
-      toℕfromℕk+sl≡ssn with toℕfromℕ≡id k
+      toℕfromℕk+sl≡ssn with toℕ-fromℕ k
       toℕfromℕk+sl≡ssn | p = begin
         toℕ (fromℕ k) + suc l
         ≡⟨ ≡cong (λ i → i + suc l) p ⟩
@@ -226,7 +228,7 @@ module Soundness
         ∎
 
       trw₂ : ∀ (i : Fin l) → (xs₂ (inject₁ i) , w₂ i , xs₂ (sucF i)) ∈ ⇝₁
-      trw₂ i with toℕfromℕ≡id k
+      trw₂ i with toℕ-fromℕ k
       trw₂ i | p = step-∋ ⇝₁ trw[k+i]
         (≡sym (begin
         xs₂ (inject₁ i) ,  w₂ i , xs₂^ i          
@@ -327,7 +329,7 @@ module Soundness
         y^ ⇝[v^] y♯ ∈ F₂
       -}
       n^≤k'+l : n^ ≤ k' + l
-      n^≤k'+l = ≤-trans n^≤l (a≤b+a {l} {k'})
+      n^≤k'+l = ≤-trans n^≤l (m≤n+m l k')
 
       [m^,v^,v^∈L[y^],[w^,v^]∈Q] : ∃[ m^ ] ∃ λ (v^ : FinWord m^ A)
         → (inj m^ v^ ∈ FINAccLang na₂ y^) × ((inj n^ w^ , inj m^ v^) ∈ ∣Q∣)
@@ -493,3 +495,4 @@ module Soundness
       soundness' l  = <-rec (λ l → _) lemma-for-soundness l
 
 open Soundness using (soundness) public
+ 

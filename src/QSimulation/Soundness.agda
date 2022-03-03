@@ -10,6 +10,8 @@ open import Data.Nat.Induction using (<-rec)
 open import Data.Fin
   using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
   renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
+open import Data.Fin.Properties
+  using (toℕ-fromℕ)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; inspect; [_])
   renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
@@ -26,6 +28,8 @@ open import QSimulation.Base
 open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
+open import QSimulation.Bounded A X₁ X₂ na₁ na₂
+  using (Mbounded⇒unbounded)
 
 module Soundness
   (Q@(aPreorder ∣Q∣ Qrefl Qtrans) : Preorder)
@@ -48,7 +52,7 @@ module Soundness
     → (inj l w ∈ FINAccLang na₁ x)
     → ∃[ w' ] -- : FINWord A
       (w' ∈ FINAccLang na₂ y) × (Preorder.carrier Q (inj l w , w'))
-  -- proof by infuction on length of word w such as x⇝[w]x'
+  -- proof by induction on length of word w such as x⇝[w]x'
   -- Base case
   lemma-for-soundness zero _ (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) with Rfinal (headF xs) y [x,y]∈R last[xs]∈F₁ | 0-length-word≡ε w
   lemma-for-soundness zero rec (.(headF xs) , y) [x,y]∈R w w∈L*[x]@(xs , ≡refl , trw , last[xs]∈F₁) | w'@(n , as) , y' , y⇝[w']y'@(ys , ≡refl , tr₂ , ≡refl) , y'∈F₂ , ε∣Q∣w' | ≡refl  =
@@ -169,10 +173,10 @@ module Soundness
           )
   
       toℕfromℕk+l≡sn : toℕ (fromℕ k) + l ≡ suc n
-      toℕfromℕk+l≡sn = (≡cong (λ i → i + l) (toℕfromℕ≡id k))
+      toℕfromℕk+l≡sn = (≡cong (λ i → i + l) (toℕ-fromℕ k))
   
       toℕfromℕk+sl≡ssn : toℕ (fromℕ k) + suc l ≡ suc (suc n)
-      toℕfromℕk+sl≡ssn with toℕfromℕ≡id k
+      toℕfromℕk+sl≡ssn with toℕ-fromℕ k
       toℕfromℕk+sl≡ssn | p = begin
         toℕ (fromℕ k) + suc l
         ≡⟨ ≡cong (λ i → i + suc l) p ⟩
@@ -221,7 +225,7 @@ module Soundness
         ∎
   
       trw₂ : ∀ (i : Fin l) → NA.trans na₁ (xs₂ (inject₁ i) , w₂ i , xs₂ (sucF i))
-      trw₂ i with toℕfromℕ≡id k
+      trw₂ i with toℕ-fromℕ k
       trw₂ i | p = step-∋ (NA.trans na₁) trw[k+i]
         (≡sym (begin
         xs₂ (inject₁ i) ,  w₂ i , xs₂^ i          
@@ -310,6 +314,8 @@ module Soundness
           -- proof of y ⇝[w'·w''] y'
           open QSimulation.Lemma.Transition X₂ A na₂ m m' ys ys' ys'0≡ys[m] w' w'' trw' trw''
           trw'w'' : (i : Fin (m + m')) → NA.trans na₂ (ys·ys' (inject₁ i) , concat w' w'' i , ys·ys' (sucF i))
+          trw'w'' i = tr i
+          {-
           trw'w'' i with lemma-for-trans-state {m} {m'} ys ys' ys'0≡ys[m] i | lemma-for-trans-word {m} {m'} w' w'' i
           trw'w'' i | p | q with splitFin {m} {m'} i
           trw'w'' i | ys[i']≡ys·ys'[i] , ys[si']≡tail[ys]·ys'[i] | q | inj₁ i' =
@@ -334,22 +340,10 @@ module Soundness
               ≡⟨ ≡cong (λ a → (concat ys (tailF ys') (inject₁ i) , a , concat (tailF ys) (tailF ys') i)) q ⟩
               concat ys (tailF ys') (inject₁ i) , concat w' w'' i , concat (tailF ys) (tailF ys') i
               ∎)
-  
+          -}
+
           last[ys·ys']∈F₂ : NA.accept na₂ (ys·ys' (fromℕ (m + m')))
-          last[ys·ys']∈F₂ = step-∋ (NA.accept na₂) last[ys']∈F₂ (last ys ys' ys'0≡ys[m])
-            where
-              last : {s t : ℕ} → (a : Fin (suc s) → X₂) → (b : Fin (suc t) → X₂)
-                → (b0≡last[a] : b zeroF ≡ a (fromℕ s))
-                → b (fromℕ t) ≡ concat a (tailF b) (fromℕ (s + t))
-              last {zero} {zero} a b b0≡last[a] = b0≡last[a]
-              last {zero} {suc t} a b b0≡last[a] = ≡refl
-              last {suc s} {t} a b b0≡last[a] = begin
-                b (fromℕ t)
-                ≡⟨ last {s} {t} (tailF a) b b0≡last[a] ⟩
-                concat (tailF a) (tailF b) (fromℕ (s + t))
-                ≡⟨⟩
-                concat a (tailF b) (fromℕ (suc s + t))
-                ∎
+          last[ys·ys']∈F₂ = step-∋ (NA.accept na₂) last[ys']∈F₂ (last-concat {X₂} ys ys' ys'0≡ys[m])
   
           -- proof of (w , w'·w'') ∈ Q
           -- use concat-closedness of Q
@@ -430,3 +424,15 @@ module Soundness
         R₁ [R₁]⊆[≤[≡]] R₂ [R₂]⊆[≤[≡]] R-as-[Q,R₁,R₂]-sim [x,y] [x,y]∈R
 open Soundness using (soundness) public
 
+soundness-of-bounded-simulation :
+  (M : ℕ)
+  → (0<M : zero < M)
+  → (Q : Preorder)
+  → (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
+  → (Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) : [ M ]-bounded-[ Q ]-constrained-simulation)
+  → ((x , y) : X₁ × X₂) → (x , y) ∈ R → x ≤[ na₁ , na₂ , Q ] y
+soundness-of-bounded-simulation M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) (x , y) [x,y]∈R =
+  soundness Q Q-is-closed-under-concat unbounded-Qconstrained-simulation (x , y) [x,y]∈R
+  where
+    unbounded-Qconstrained-simulation : [ Q ]-constrained-simulation
+    unbounded-Qconstrained-simulation = Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation
