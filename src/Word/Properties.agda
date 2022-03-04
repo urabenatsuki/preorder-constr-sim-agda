@@ -79,6 +79,15 @@ proj₁[split[w][n≤n]]≡w {A} {n} w n≤n | w₁ , w₂ | w₁i≡ = begin
   w
   ∎
 
+concat[a∷u][v]i≡a∷concat[u][v]i : {A : Set} {m n : ℕ}
+  → (a : A)
+  → (u : FinWord n A)
+  → (v : FinWord m A)
+  → ∀ (i : Fin (suc n + m)) → concat (a ∷ᶠ u) v i ≡ (a ∷ᶠ concat u v) i
+concat[a∷u][v]i≡a∷concat[u][v]i {A} {m} {n} a u v 0F = refl
+concat[a∷u][v]i≡a∷concat[u][v]i {A} {m} {n} a u v (sucF i) = refl
+
+
 concat[w][si]≡concat[tail[w]][i] : {A : Set} {n k : ℕ}
   → (w : FinWord (suc n) A) → (k≤n : k ≤ n)
   → (i : Fin (k + proj₁ (n-k k≤n)))
