@@ -96,6 +96,28 @@ module Remτ (A X₁ X₂ : Set) where
   ≡τ-carrier ((m , u) , (n , v)) | m' , u' | n' , v' | false because ofⁿ ¬p =
     ⊥
 
+  -- another definition of carrier of ≡τ
+  ≡τ-carrier' : Pred' ((FINWord A+τ) × (FINWord A+τ))
+  ≡τ-carrier' ((m , u) , (n , v)) = remτ m u ≡ remτ n v
+
+  -- equivalence between ≡τ-carrier and ≡τ-carrier'
+  ≡τ-carrier-carrier' : ∀ (uv : (FINWord A+τ) × (FINWord A+τ)) → ≡τ-carrier uv → ≡τ-carrier' uv
+  ≡τ-carrier-carrier' ((m , u) , (n , v)) u≡τv with remτ m u | remτ n v
+  ≡τ-carrier-carrier' ((m , u) , (n , v)) u≡τv | m' , u' | n' , v' with m' ≟ n'
+  ≡τ-carrier-carrier' ((m , u) , n , v) u≡τv | m' , u' | .m' , v' | .true because ofʸ ≡refl =
+    begin m' , u' ≡⟨ ≡cong (λ t → m' , t) (ex u≡τv) ⟩ m' , v' ∎
+  
+  ≡τ-carrier'-carrier : ∀ (uv : (FINWord A+τ) × (FINWord A+τ)) → ≡τ-carrier' uv → ≡τ-carrier uv
+  ≡τ-carrier'-carrier ((m , u) , (n , v)) u≡τ'v with remτ m u | remτ n v
+  ≡τ-carrier'-carrier ((m , u) , (n , v)) u≡τ'v | m' , u' | n' , v' with m' ≟ n'
+  ≡τ-carrier'-carrier ((m , u) , n , v) u≡τv | m' , u' | .m' , v' | .true because ofʸ ≡refl = (lem m' u' v' u≡τv)
+    where
+      lem : ∀ k → (x y : FinWord k A) → inj k x ≡ inj k y → ∀ i → x i ≡ y i
+      lem k x .x ≡refl i = ≡refl
+  ≡τ-carrier'-carrier ((m , u) , n , v) u≡τv | m' , u' | n' , v' | .false because ofⁿ ¬m'≡n' with ¬m'≡n' (word-≡-proj₁ (m' , u') (n' , v') u≡τv)
+  ≡τ-carrier'-carrier ((m , u) , n , v) u≡τv | m' , u' | n' , v' | .false because ofⁿ ¬m'≡n' | ()
+  
+
   ≡τ-refl : ∀ (w : FINWord A+τ) → ≡τ-carrier (w , w)
   ≡τ-refl (n , w) with remτ n w
   ≡τ-refl (n , w) | n' , w' with n' ≟ n'
@@ -152,21 +174,64 @@ module Remτ (A X₁ X₂ : Set) where
         → inj (suc l₁) (a ∷ᶠ w₁) ≡ inj (suc l₂) (a ∷ᶠ w₂)
       lemma a l₁ .l₁ w₁ .w₁ ≡refl = ≡refl
 
+  u0≡a⇒u'0≡τ⇒u-≡τ-tailu' : (m m' : ℕ)
+    → (u : FinWord (suc m) A+τ)
+    → (u' : FinWord (suc m') A+τ)
+    → (inj (suc m) u , inj (suc m') u') ∈ ≡τ-carrier
+    → (a : A)
+    → (u zeroF ≡ fromA a)
+    → (u' zeroF ≡ τ)
+    → (inj (suc m) u , inj m' (tailF u')) ∈ ≡τ-carrier
+  u0≡a⇒u'0≡τ⇒u-≡τ-tailu' m m' u u' u-u' a u0≡a u'≡τ with u zeroF | u' zeroF
+  u0≡a⇒u'0≡τ⇒u-≡τ-tailu' m m' u u' u-u' a u0≡a u'≡τ | fromA _ | τ with remτ m (tailF u) | remτ m' (tailF u')
+  u0≡a⇒u'0≡τ⇒u-≡τ-tailu' m m' u u' u-u' a u0≡a u'≡τ | fromA _ | τ | n , v | n' , v' with (suc n) ≟ n'
+  u0≡a⇒u'0≡τ⇒u-≡τ-tailu' m m' u u' u-u' a u0≡a u'≡τ | fromA _ | τ | n , v | .(suc n) , v' | .true because ofʸ ≡refl = u-u'
+
+  ≡τ'-concat : (m m' n n' : ℕ)
+    → (u  : FinWord m  A+τ) → (v  : FinWord n  A+τ)
+    → (u' : FinWord m' A+τ) → (v' : FinWord n' A+τ)
+    → (inj m u , inj m' u') ∈ ≡τ-carrier'
+    → (inj n v , inj n' v') ∈ ≡τ-carrier'
+    → (inj (m + n) (concat u v) , inj (m' + n') (concat u' v')) ∈ ≡τ-carrier'
+  ≡τ'-concat m m' n n' u v u' v' u-u' v-v' with remτ m u | remτ m' u' | remτ n v | remτ n' v' | remτ-concat m n u v | remτ-concat m' n' u' v'
+  ≡τ'-concat m m' n n' u v u' v' u-u' v-v' | rm , ru  | rm' , ru' | rn , rv | rn' , rv' | p | p' =
+    begin
+    remτ (m + n) (concat u v)
+    ≡⟨ ≡sym p ⟩
+    rm + rn , concat ru rv
+    ≡⟨ lemma ru rv ru' rv' u-u' v-v' ⟩
+    rm' + rn' , concat ru' rv'
+    ≡⟨ p' ⟩
+    remτ (m' + n') (concat u' v')
+    ∎
+    where
+      lemma : ∀ {l₁ l₂ l₁' l₂' : ℕ}
+        → (w₁ : FinWord l₁ A) → (w₂ : FinWord l₂ A)
+        → (w₁' : FinWord l₁' A) → (w₂' : FinWord l₂' A)
+        → (p₁ : inj l₁ w₁ ≡ inj l₁' w₁')
+        → (p₂ : inj l₂ w₂ ≡ inj l₂' w₂')
+        → inj (l₁ + l₂) (concat w₁ w₂) ≡ inj (l₁' + l₂') (concat w₁' w₂')
+      lemma {l₁} {l₂} {.l₁} {.l₂} w₁ w₂ .w₁ .w₂ ≡refl ≡refl = ≡refl
+  
+  ≡τ-concat : (m m' n n' : ℕ)
+    → (u  : FinWord m  A+τ) → (v  : FinWord n  A+τ)
+    → (u' : FinWord m' A+τ) → (v' : FinWord n' A+τ)
+    → (inj m u , inj m' u') ∈ ≡τ-carrier
+    → (inj n v , inj n' v') ∈ ≡τ-carrier
+    → (inj (m + n) (concat u v) , inj (m' + n') (concat u' v')) ∈ ≡τ-carrier
+  ≡τ-concat m m' n n' u v u' v' u-u' v-v' =
+    ≡τ-carrier'-carrier (inj (m + n) (concat u v) , inj (m' + n') (concat u' v'))
+      (≡τ'-concat m m' n n' u v u' v' (≡τ-carrier-carrier' (inj m u , inj m' u') u-u') (≡τ-carrier-carrier' (inj n v , inj n' v') v-v'))
+  
   open ConditionOnQ A+τ
   ≡τ-is-closed-under-concat : [ ≡τ ]-is-closed-under-concat
-  ≡τ-is-closed-under-concat ((n , u) , (n' , u')) u≡τu' ((m , v) , (m' , v')) v≡τv' =
-    -- u≡τu' : (inj n u , inj n' u') ∈ ≡τ-carrier
-    step-∋ ≡τ-carrier {!  !}
+  ≡τ-is-closed-under-concat ((m , u) , (m' , u')) u≡τu' ((n , v) , (n' , v')) v≡τv' =
+    step-∋ ≡τ-carrier (≡τ-concat m m' n n' u v u' v' u≡τu' v≡τv')
       (begin
-      inj (n + m) (concat u v) , inj (n' + m') (concat u' v')
+      inj (m + n) (concat u v) , inj (m' + n') (concat u' v')
       ≡⟨⟩
-      (n , u) · (m , v) , (n' , u') · (m' , v')
+      (m , u) · (n , v) , (m' , u') · (n' , v')
       ∎)
-    where
-      p : remτ (n + m) (concat u v) ≡ (proj₁ (remτ n u) + proj₁ (remτ m v) , concat (proj₂ (remτ n u)) (proj₂ (remτ m v)))
-      p = {!   !}
-      p' : remτ (n' + m') (concat u' v') ≡ (proj₁ (remτ n' u') + proj₁ (remτ m' v') , concat (proj₂ (remτ n' u')) (proj₂ (remτ m' v')))
-      p' = {!   !}
 
 
 module Prefix (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
@@ -219,16 +284,12 @@ module Fig-1-1 where
 
   open Addτ A
   
-  data X : Set where
-    x₀ : X
-    x₁ : X
-    x₂ : X
-
-  data Y : Set where
-    y₀ : Y
-    y₂ : Y
-
   module NA₁ where
+    data X : Set where
+      x₀ : X
+      x₁ : X
+      x₂ : X
+
     tr₁ : Pred' (X × A+τ × X)
     tr₁ (x₀ , τ , x₁) = ⊤
     tr₁ (x₁ , τ , x₂) = ⊤
@@ -250,6 +311,10 @@ module Fig-1-1 where
   open NA₁
 
   module NA₂ where
+    data Y : Set where
+      y₀ : Y
+      y₂ : Y
+
     tr₂ : Pred' (Y × A+τ × Y)
     tr₂ (y₀ , τ , y₂) = ⊤
     tr₂ (y₂ , fromA a , y₂) = ⊤
@@ -294,6 +359,7 @@ module Fig-1-1 where
     step x₀ y₀ tt xs w p tr with tr zeroF 
     step x₀ y₀ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
     step x₀ y₀ tt xs w p tr | tt | x₀ | Addτ.τ | x₁ | [ w0≡τ ] | [ xs1≡x₁ ] =
+      -- x₀ -τ→ x₁
       (1 , (λ ()) , s≤s (s≤s z≤n) , (zero , emptyF) , y₀ , w↾1≡τε , ((λ i → y₀) , ≡refl , (λ ()) , ≡refl) , [xs1,y₀]∈R)
       where
         [xs1,y₀]∈R : R (xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₀ )
@@ -323,6 +389,7 @@ module Fig-1-1 where
     step x₁ y₀ tt xs w p tr with tr zeroF
     step x₁ y₀ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
     step x₁ y₀ tt xs w p tr | tt | x₁ | Addτ.τ | x₂ | [ w0≡τ ] | [ xs1≡x₂ ] =
+      -- x₁ -τ→ x₂
       (1 , (λ ()) , (s≤s (s≤s z≤n)) , (1 , u) , y₂ , w↾1≡τu , (ys , ≡refl , tr-ys , ≡refl) ,  [xs1,y₂]∈R )
       where
         [xs1,y₂]∈R : R (xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₂ )
@@ -361,6 +428,7 @@ module Fig-1-1 where
     step x₂ y₂ tt xs w p tr with tr zeroF
     step x₂ y₂ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
     step x₂ y₂ tt xs w p tr | tt | x₂ | Addτ.fromA a | x₂ | [ w0≡a ] | [ xs1≡x₂ ] =
+      -- x₂ -a→ x₂
       (1 , (λ ()) , (s≤s (s≤s z≤n)) , (1 , u) , y₂ , w↾1≡τu , (ys , ≡refl , tr-ys , ≡refl) ,  [xs1,y₂]∈R )
       where
         [xs1,y₂]∈R : R (xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₂ )
@@ -387,8 +455,8 @@ module Fig-1-1 where
 
         w≡τu : ≡τ-carrier ((1 , w) , (1 , u))
         w≡τu with remτ 1 w | inspect (remτ 1) w | remτ 1 u | inspect proj₁ (remτ 1 u) | w0≡a⇒remτ[w]≡a∷remτ[tail[w]] 0 w a w0≡a
-        w≡τu | .1 , w' | _ | .1 , .w' | [ ≡refl ] | ≡refl with 1 ≟ 1
-        w≡τu | _ , w' | [ remτw≡w' ] | _ , .w' | [ ≡refl ] | ≡refl | _ = w'i≡vi
+        w≡τu | .1 , w' | _ | .1 , .w' | [ ≡refl ] | ≡refl with 1 ≟ 1 | w' zeroF | inspect w' zeroF
+        w≡τu | _ , w' | [ remτw≡w' ] | _ , .w' | [ ≡refl ] | ≡refl | _ | a | [ w'0≡a ] = w'i≡vi
           where
             v : FinWord 1 A
             v = a ∷ᶠ emptyF
@@ -397,11 +465,7 @@ module Fig-1-1 where
             lemma = lem (remτ 1 w) 1 w' remτw≡w'
 
             w'i≡vi : (i : Fin 1) → w' i ≡ v i
-            w'i≡vi zeroF = begin
-              w' zeroF
-              ≡⟨ {!   !} ⟩
-              a ≡⟨⟩ v zeroF ∎
-          
+            w'i≡vi zeroF = begin w' zeroF ≡⟨ w'0≡a ⟩ a ≡⟨⟩ v zeroF ∎
 
         w↾1≡τu : ((1 , (w ↾ s≤s (s≤s z≤n))) , (1 , u)) ∈ ≡τ-carrier
         w↾1≡τu = step-∋ ≡τ-carrier w≡τu
@@ -426,17 +490,12 @@ module Fig-1-2 where
   data A : Set where
     a : A
     b : A
-  
-  data X : Set where
-    x₀ : X
-    x₂ : X
-  
-  data Y : Set where
-    y₀ : Y
-    y₁ : Y
-    y₂ : Y
 
-  module NA₁ where  
+  module NA₁ where
+    data X : Set where
+      x₀ : X
+      x₂ : X
+  
     tr₁ : Pred' (X × A × X)
     tr₁ (x₀ , a , x₂) = ⊤
     tr₁ (x₂ , b , x₂) = ⊤
@@ -455,6 +514,11 @@ module Fig-1-2 where
   open NA₁
 
   module NA₂ where
+    data Y : Set where
+      y₀ : Y
+      y₁ : Y
+      y₂ : Y
+      
     tr₂ : Pred' (Y × A × Y)
     tr₂ (y₀ , a , y₁) = ⊤
     tr₂ (y₂ , b , y₁) = ⊤
@@ -474,4 +538,3 @@ module Fig-1-2 where
     na₂ : NA Y A
     na₂ = anNA tr₂ init₂ acc₂
   open NA₂
-   
