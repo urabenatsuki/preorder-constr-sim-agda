@@ -21,6 +21,9 @@ open import Word.Base
 postulate
   ex : Extensionality lzero lzero
 
+word-≡-proj₁ : {A : Set} → (u v : FINWord A) → u ≡ v → proj₁ u ≡ proj₁ v
+word-≡-proj₁ {A} (m , u) (.m , .u) refl = refl
+
 -- Path lifting property for words.
 -- see [HoTT, Lemma 2.3.2] for example.
 module PathLiftingProperty where
