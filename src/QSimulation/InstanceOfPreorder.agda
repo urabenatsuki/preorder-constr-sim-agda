@@ -1,13 +1,17 @@
-module QSimulation.Example where
+module QSimulation.InstanceOfPreorder where
 
-open import Agda.Builtin.Bool
-  using (true; false)
+open import Data.Bool
+  using (true; false; Bool)
+  renaming (f≤t to f→ᵇt; b≤b to b→ᵇb; _≤_ to _→ᵇ_)
+open import Data.Bool.Properties
+  using ()
+  renaming (≤-trans to →ᵇ-trans)
 open import Data.Nat
 open import Data.Nat.Properties
   using (≤-reflexive; ≤-trans; ≤-step; _≟_)
 open import Data.Fin
-  using (Fin; inject≤; fromℕ<; inject₁; cast)
-  renaming (zero to zeroF; suc to sucF)
+  using (Fin; inject≤; fromℕ; fromℕ<; inject₁; cast; toℕ)
+  renaming (zero to zeroF; suc to sucF; _<_ to _<ᶠ_)
 open import Data.Fin.Properties
   using (inject≤-refl; inject≤-idempotent)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
@@ -19,6 +23,7 @@ open import Relation.Binary.PropositionalEquality
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Data.Empty using (⊥)
 open import Data.Unit.Base using (⊤; tt)
+open import Function.Base using (_∘′_)
 
 open import Base
 open import Word
@@ -27,7 +32,7 @@ open import QSimulation.Base
 open import QSimulation.Lemma using (casti≡i)
 
 
-module Eq (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
+module Eq (A : Set) where
   EqCarrier : Pred' ((FINWord A) × (FINWord A))
   EqCarrier (w , w') = w ≡ w'
   EqRefl : ∀ (s : FINWord A) → EqCarrier (s , s)
@@ -39,20 +44,26 @@ module Eq (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
   EqTrans w .w .w ≡refl ≡refl = ≡refl
   
   Eq = aPreorder EqCarrier EqRefl EqTrans
-  
-  LanguageInclusion :
-    (x : X₁) → (y : X₂)
-    → (x ≤[ na₁ , na₂ , Eq ] y)
-    → (FINAccLang na₁ x) ⊆ (FINAccLang na₂ y)
-  LanguageInclusion x y x≤[≡]y {w} w∈L₁[x] with x≤[≡]y w w∈L₁[x]
-  ... | (w' , w'∈L₂y , wQw') = step-∋ (FINAccLang na₂ y) w'∈L₂y (≡sym wQw')
+
+  open ConditionOnQ A
+  Eq-is-closed-under-concat : [ Eq ]-is-closed-under-concat
+  Eq-is-closed-under-concat ((m , u) , .m , .u) ≡refl ((n , v) , .n , .v) ≡refl = ≡refl
+
+LanguageInclusion :
+  {X₁ X₂ A : Set} →
+  (na₁ : NA X₁ A) → (na₂ : NA X₂ A)
+  (x : X₁) → (y : X₂)
+  → (x ≤[ na₁ , na₂ , Eq.Eq A ] y)
+  → (FINAccLang na₁ x) ⊆ (FINAccLang na₂ y)
+LanguageInclusion na₁ na₂ x y x≤[≡]y {w} w∈L₁[x] with x≤[≡]y w w∈L₁[x]
+... | (w' , w'∈L₂y , wQw') = step-∋ (FINAccLang na₂ y) w'∈L₂y (≡sym wQw')
 
 module Addτ (A : Set) where
   data A+τ : Set where
     fromA : A → A+τ
     τ : A+τ
 
-module Remτ (A X₁ X₂ : Set) where
+module Remτ (A : Set) where
   open Addτ A
   remτ : (n : ℕ) → FinWord n A+τ → FINWord A
   remτ zero w = ε-word A
@@ -235,19 +246,19 @@ module Remτ (A X₁ X₂ : Set) where
 
 
 module Prefix (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
-  ⊑-carrier : Pred' ((FINWord A) × (FINWord A))
-  ⊑-carrier ((m , u) , (n , v)) =
+  ⊑prefix-carrier : Pred' ((FINWord A) × (FINWord A))
+  ⊑prefix-carrier ((m , u) , (n , v)) =
     -- u is a prefix of v
     ∃[ m≤n ] ∀ (i : Fin m) → (u i ≡ v (inject≤ i m≤n))
 
-  ⊑-refl : ∀ (w : FINWord A) → ⊑-carrier (w , w)
-  ⊑-refl (n , w) = (≤-reflexive ≡refl , λ i → ≡cong w (≡sym (inject≤-refl i (≤-reflexive ≡refl))))
+  ⊑prefix-refl : ∀ (w : FINWord A) → ⊑prefix-carrier (w , w)
+  ⊑prefix-refl (n , w) = (≤-reflexive ≡refl , λ i → ≡cong w (≡sym (inject≤-refl i (≤-reflexive ≡refl))))
 
-  ⊑-trans : ∀ (w w' w'' : FINWord A)
-    → ⊑-carrier (w , w')
-    → ⊑-carrier (w' , w'')
-    → ⊑-carrier (w , w'')
-  ⊑-trans (l , w) (m , w') (n , w'') (l≤m , w⊑w') (m≤n , w'⊑w'') =
+  ⊑prefix-trans : ∀ (w w' w'' : FINWord A)
+    → ⊑prefix-carrier (w , w')
+    → ⊑prefix-carrier (w' , w'')
+    → ⊑prefix-carrier (w , w'')
+  ⊑prefix-trans (l , w) (m , w') (n , w'') (l≤m , w⊑w') (m≤n , w'⊑w'') =
     (≤-trans l≤m m≤n , λ i →
       (begin
       w i
@@ -260,11 +271,11 @@ module Prefix (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
       ∎)
     )
 
-  Prefix = aPreorder ⊑-carrier ⊑-refl ⊑-trans
+  Prefix = aPreorder ⊑prefix-carrier ⊑prefix-refl ⊑prefix-trans
 
   Equivalent-to-≤[⊑] : (x : X₁) → (y : X₂) → Set
   Equivalent-to-≤[⊑] x y =
-    (w : FINWord A) → w ∈ FINAccLang na₁ x → ∃[ w' ] (w' ∈ FINAccLang na₂ y) × (w , w') ∈ ⊑-carrier
+    (w : FINWord A) → w ∈ FINAccLang na₁ x → ∃[ w' ] (w' ∈ FINAccLang na₂ y) × (w , w') ∈ ⊑prefix-carrier
   
   x≤[⊑]y⇒∀w∈L₁[x]∃w'∈L₂[y]w⊑w' :
     (x : X₁) → (y : X₂)
@@ -278,263 +289,124 @@ module Prefix (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
     → (x ≤[ na₁ , na₂ , Prefix ] y)
   ∀w∈L₁[x]∃w'∈L₂[y]w⊑w'⇒x≤[⊑]y x y f w w∈L₁[x] = f w w∈L₁[x]
 
-module Fig-1-1 where
-  data A : Set where
-    a : A
+module Substr (A : Set) where
 
-  open Addτ A
+  _is-monotone : ∀ {m n} → (Fin m → Fin n) → Set
+  _is-monotone {zero} {n} f = ⊤
+  _is-monotone {suc zero} {zero} f = ⊥
+  _is-monotone {suc zero} {suc n} f = ⊤
+  _is-monotone {suc (suc m)} {n} f = ∀ (i : Fin (suc m)) → f (inject₁ i) <ᶠ f (sucF i)
   
-  module NA₁ where
-    data X : Set where
-      x₀ : X
-      x₁ : X
-      x₂ : X
+  idᶠ : ∀ {m} → Fin m → Fin m
+  idᶠ i = i
+  idᶠ-is-monotone : ∀ {m} → (idᶠ {m}) is-monotone
+  idᶠ-is-monotone {zero} = tt
+  idᶠ-is-monotone {suc zero} = tt
+  idᶠ-is-monotone {suc (suc m)} = λ (i : Fin (suc m)) → lem m i
+    where
+      lem : ∀ m → ∀ (i : Fin (suc m)) → toℕ (inject₁ i) < toℕ (sucF i)
+      lem m zeroF = s≤s z≤n
+      lem (suc m) (sucF i) = s≤s (lem m i)
 
-    tr₁ : Pred' (X × A+τ × X)
-    tr₁ (x₀ , τ , x₁) = ⊤
-    tr₁ (x₁ , τ , x₂) = ⊤
-    tr₁ (x₂ , fromA a , x₂) = ⊤
-    tr₁ _ = ⊥
+  ⊑substr-carrier : Pred' ((FINWord A) × (FINWord A))
+  ⊑substr-carrier ((m , u) , (n , v)) = ∃[ f ] (f is-monotone) × (∀ i → u i ≡ v (f i))
 
-    acc₁ : Pred' X
-    acc₁ x₀ = ⊥
-    acc₁ x₁ = ⊥
-    acc₁ x₂ = ⊤
+  ⊑substr-refl : ∀ (w : FINWord A) → ⊑substr-carrier (w , w)
+  ⊑substr-refl (n , w) = (idᶠ , idᶠ-is-monotone , (λ i → ≡refl))
 
-    init₁ : Pred' X
-    init₁ x₀ = ⊤
-    init₁ x₁ = ⊥
-    init₁ x₂ = ⊥
+  {-
+  f-monotone→i<j→fi<fj : ∀ {m n}
+    → (f : Fin m → Fin n)
+    → f is-monotone
+    → ∀ i j → i <ᶠ j → f i <ᶠ f j
+  f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF zeroF ()
+  f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF (sucF ()) i<j
+  f-monotone→i<j→fi<fj {suc (suc m)} {n} f f-mon i (sucF j) (s≤s i≤j) = {!  !}
 
-    na₁ : NA X A+τ
-    na₁ = anNA tr₁ init₁ acc₁
-  open NA₁
-
-  module NA₂ where
-    data Y : Set where
-      y₀ : Y
-      y₂ : Y
-
-    tr₂ : Pred' (Y × A+τ × Y)
-    tr₂ (y₀ , τ , y₂) = ⊤
-    tr₂ (y₂ , fromA a , y₂) = ⊤
-    tr₂ _ = ⊥
-
-    acc₂ : Pred' Y
-    acc₂ y₀ = ⊥
-    acc₂ y₂ = ⊤
-
-    init₂ : Pred' Y
-    init₂ y₀ = ⊤
-    init₂ y₂ = ⊥
-
-    na₂ : NA Y A+τ
-    na₂ = anNA tr₂ init₂ acc₂
-  open NA₂
+  compose : ∀ {l m n} → (Fin l → Fin m) → (Fin m → Fin n) → (Fin l → Fin n)
+  compose {l} {m} {n} f g i = g (f i)
+  compose-monotone : ∀ {l m n}
+    → (f : Fin l → Fin m)
+    → (f is-monotone)
+    → (g : Fin m → Fin n)
+    → (g is-monotone)
+    → ( (compose f g) is-monotone )
+  compose-monotone {zero} {m} {n} f f-mon g g-mon = tt
+  compose-monotone {suc zero} {suc (suc m)} {zero} f f-mon g g-mon with g zeroF
+  compose-monotone {suc zero} {suc (suc m)} {zero} f f-mon g g-mon | ()
+  compose-monotone {suc zero} {suc m} {suc n} f f-mon g g-mon = tt
+  compose-monotone {suc (suc l)} {m} {n} f f-mon g g-mon = λ i → f-monotone→i<j→fi<fj g g-mon (f (inject₁ i)) (f (sucF i)) (f-mon i)
   
-  open Remτ A X Y
-  open QSimulationBase A+τ X Y na₁ na₂
+  ⊑substr-trans : (w w' w'' : FINWord A)
+    → ⊑substr-carrier (w , w')
+    → ⊑substr-carrier (w' , w'')
+    → ⊑substr-carrier (w , w'')
+  ⊑substr-trans (n , w) (n' , w') (n'' , w'') (f , f-monotone , w-f-w') (f' , f'-monotone , w'-f'-w'') =
+    ( compose f f' , compose-monotone f f-monotone f' f'-monotone ,
+    (λ i → begin w i ≡⟨ w-f-w' i ⟩ w' (f i) ≡⟨ w'-f'-w'' (f i) ⟩ w'' (f' (f i)) ∎)
+    )
+  -}
+module Subset (A : Set) where
+  PA : Set
+  PA = A → Bool
+
+  subset : Pred' (PA × PA)
+  subset (s , t) = ∀ a → s a →ᵇ t a
+
+  ⊆*-carrier : Pred' ((FINWord PA) × (FINWord PA))
+  ⊆*-carrier ((k , w) , (k' , w')) with k ≟ k'
+  ⊆*-carrier ((k , w) , (.k , w')) | .true because ofʸ ≡refl = ∀ i → subset ((w i) , (w' i))
+  ⊆*-carrier ((k , w) , (k' , w')) | .false because ofⁿ _ = ⊥
+
+  ⊆*-refl : ∀ (w : FINWord PA) → ⊆*-carrier (w , w)
+  ⊆*-refl (k , w) with k ≟ k
+  ⊆*-refl (k , w) | .true because ofʸ ≡refl = λ i a → b→ᵇb
+  ⊆*-refl (k , w) | .false because ofⁿ ¬k≡k = ¬k≡k ≡refl
+
+  ⊆*-trans : ∀ (w w' w'' : FINWord PA)
+    → ⊆*-carrier (w , w')
+    → ⊆*-carrier (w' , w'')
+    → ⊆*-carrier (w , w'')
+  ⊆*-trans (l , w) (m , w') (n , w'') w-w' w'-w'' with l ≟ m | m ≟ n
+  ⊆*-trans (l , w) (l , w') (.l , w'') w-w' w'-w'' | .true because ofʸ ≡refl | .true because ofʸ ≡refl with l ≟ l
+  ⊆*-trans (l , w) (l , w') (l , w'') w-w' w'-w'' | .true because ofʸ ≡refl | .true because ofʸ ≡refl | .true because ofʸ ≡refl =
+    λ i → λ a → →ᵇ-trans (w-w' i a) (w'-w'' i a)
+  ⊆*-trans (l , w) (l , w') (l , w'') _ _ | .true because ofʸ ≡refl | .true because ofʸ ≡refl | .false because ofⁿ ¬p = ¬p ≡refl
+
+  ⊆* = aPreorder ⊆*-carrier ⊆*-refl ⊆*-trans
+
+  lemma-⊆*-is-closed-under-concat : ∀ m n m' n'
+    → (u  : FinWord m PA)
+    → (v : FinWord n PA)
+    → (u'  : FinWord m' PA)
+    → (v' : FinWord n' PA)
+    → (inj m u , inj m' u') ∈ ⊆*-carrier
+    → (inj n v , inj n' v') ∈ ⊆*-carrier
+    → (inj (m + n) (concat u v) , inj (m' + n') (concat u' v')) ∈ ⊆*-carrier
+  lemma-⊆*-is-closed-under-concat zero n zero n' u v u' v' u-u' v-v' = v-v'
+  lemma-⊆*-is-closed-under-concat (suc m) n m' n' u v u' v' u-u' v-v' with (suc m) ≟ m' | n ≟ n'
+  lemma-⊆*-is-closed-under-concat (suc m) n .(suc m) .n u v u' v' u-u' v-v' | .true because ofʸ ≡refl | .true because ofʸ ≡refl with (suc m + n) ≟ (suc m + n)
+  lemma-⊆*-is-closed-under-concat (suc m) n .(suc m) n u v u' v' u-u' v-v' | .true because ofʸ ≡refl | .true because ofʸ ≡refl | .true because ofʸ ≡refl =
+    λ { zeroF → u-u' zeroF ; (sucF i) → proof i }
+    where
+      tu-tu' : (inj m (tailF u) , inj m (tailF u')) ∈ ⊆*-carrier
+      tu-tu' with m ≟ m
+      tu-tu' | .true because ofʸ ≡refl = λ i → u-u' (sucF i)
+      tu-tu' | .false because ofⁿ ¬p = ¬p ≡refl
+
+      v-v'-again : (inj n v , inj n v') ∈ ⊆*-carrier
+      v-v'-again with n ≟ n
+      v-v'-again | .true because ofʸ ≡refl = v-v'
+      v-v'-again | .false because ofⁿ ¬p = ¬p ≡refl
+
+      proof : ∀ i → ∀ a → concat u v (sucF i) a →ᵇ concat u' v' (sucF i) a
+      proof i a with (m + n) ≟ proj₁ (inj (m + n) (concat (tailF u') v')) | lemma-⊆*-is-closed-under-concat m n m n (tailF u) v (tailF u') v' tu-tu' v-v'-again
+      proof i a | .true because ofʸ ≡refl | ih = ih i a
+      proof i a | .false because ofⁿ ¬p | ()
+  lemma-⊆*-is-closed-under-concat (suc m) n .(suc m) n u v u' v' u-u' v-v' | .true because ofʸ ≡refl | .true because ofʸ ≡refl | .false because ofⁿ ¬p = ¬p ≡refl
   
-  module 1Bounded where
-    R : Pred' (X × Y)
-    -- R = { (x₀ , y₀) , (x₁ , y₀) , (x₂ , y₂) }
-    R (x₀ , y₀) = ⊤
-    R (x₀ , y₂) = ⊥
-    R (x₁ , y₀) = ⊤
-    R (x₁ , y₂) = ⊥
-    R (x₂ , y₀) = ⊥
-    R (x₂ , y₂) = ⊤
-
-    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ ≡τ ] R x y
-    final x₀ y [x,y]∈R zero xs w p tr x₀∈F₁ (s≤s z≤n) with step-∋ acc₁ x₀∈F₁ (≡sym p)
-    final x₀ y [x,y]∈R zero xs w p tr x₀∈F₁ (s≤s z≤n) | ()
-    final x₁ y [x,y]∈R zero xs w p tr x₁∈F₁ (s≤s z≤n) with step-∋ acc₁ x₁∈F₁ (≡sym p)
-    final x₁ y [x,y]∈R zero xs w p tr x₁∈F₁ (s≤s z≤n) | ()
-    final x₂ y₂ tt zero xs w p tr x₂∈F₂ (s≤s z≤n) = ((zero , emptyF) , y₂ , (λ i → ≡refl) , tr' , tt)
-      where
-        tr' : (zero , emptyF) ∈ FINWord-from[ y₂ ]to[ y₂ ] na₂
-        tr' = (λ y → y₂) , ≡refl , (λ ()) , ≡refl
-
-    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ ≡τ ] R x y
-    step x₀ y₀ tt xs w p tr with tr zeroF 
-    step x₀ y₀ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
-    step x₀ y₀ tt xs w p tr | tt | x₀ | Addτ.τ | x₁ | [ w0≡τ ] | [ xs1≡x₁ ] =
-      -- x₀ -τ→ x₁
-      (1 , (λ ()) , s≤s (s≤s z≤n) , (zero , emptyF) , y₀ , w↾1≡τε , ((λ i → y₀) , ≡refl , (λ ()) , ≡refl) , [xs1,y₀]∈R)
-      where
-        [xs1,y₀]∈R : R (xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₀ )
-        [xs1,y₀]∈R = step-∋ R tt
-          (begin
-          x₁ , y₀
-          ≡⟨ ≡cong (λ x → x , y₀) (≡sym xs1≡x₁) ⟩
-          xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₀
-          ∎)
-        
-        w≡τε : ≡τ-carrier ((1 , w) , (zero , emptyF))
-        w≡τε with remτ 1 w | remτ zero emptyF | inspect proj₁ (remτ zero emptyF) | w0≡τ⇒remτ[w]≡remτ[tail[w]] 0 w w0≡τ
-        w≡τε | .0 , w' | .0 , .w' | [ ≡refl ] | ≡refl with zero ≟ zero
-        w≡τε | _ , w' | _ , .w' | [ ≡refl ] | ≡refl | .true because ofʸ ≡refl = λ ()
-        w≡τε | _ , w' | _ , .w' | [ ≡refl ] | ≡refl | .false because ofⁿ _ = λ ()
-
-        w↾1≡τε : ((1 , (w ↾ s≤s (s≤s z≤n))) , (zero , emptyF)) ∈ ≡τ-carrier
-        w↾1≡τε = step-∋ ≡τ-carrier w≡τε
-          (begin
-          (1 , w) , (zero , emptyF)
-          ≡⟨ ≡cong (λ u → ((1 , u) , (zero , emptyF))) (ex w↾1i≡wi) ⟩
-          (1 , (w ↾ s≤s (s≤s z≤n))) , (zero , emptyF)
-          ∎)
-          where
-            w↾1i≡wi : ∀ i → w i ≡ (w ↾ s≤s (s≤s z≤n)) i
-            w↾1i≡wi zeroF = ≡refl
-    step x₁ y₀ tt xs w p tr with tr zeroF
-    step x₁ y₀ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
-    step x₁ y₀ tt xs w p tr | tt | x₁ | Addτ.τ | x₂ | [ w0≡τ ] | [ xs1≡x₂ ] =
-      -- x₁ -τ→ x₂
-      (1 , (λ ()) , (s≤s (s≤s z≤n)) , (1 , u) , y₂ , w↾1≡τu , (ys , ≡refl , tr-ys , ≡refl) ,  [xs1,y₂]∈R )
-      where
-        [xs1,y₂]∈R : R (xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₂ )
-        [xs1,y₂]∈R = step-∋ R tt
-          (begin
-          x₂ , y₂
-          ≡⟨ ≡cong (λ x → x , y₂) (≡sym xs1≡x₂) ⟩
-          xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₂
-          ∎)
-
-        u : Fin 1 → A+τ
-        u = (λ zeroF → τ)
-
-        ys : Fin 2 → Y
-        ys zeroF = y₀
-        ys (sucF zeroF) = y₂
-        
-        tr-ys : ∀ i → (ys (inject₁ i) , u i , ys (sucF i)) ∈ tr₂
-        tr-ys zeroF = tt
-        
-        w≡τu : ≡τ-carrier ((1 , w) , (1 , u))
-        w≡τu with remτ 1 w | remτ 1 u | inspect proj₁ (remτ 1 u) | w0≡τ⇒remτ[w]≡remτ[tail[w]] 0 w w0≡τ
-        w≡τu | .0 , w' | .0 , .w' | [ ≡refl ] | ≡refl with zero ≟ zero
-        w≡τu | .0 , w' | .0 , .w' | [ ≡refl ] | ≡refl | _ = λ ()
-
-        w↾1≡τu : ((1 , (w ↾ s≤s (s≤s z≤n))) , (1 , u)) ∈ ≡τ-carrier
-        w↾1≡τu = step-∋ ≡τ-carrier w≡τu
-          (begin
-          (1 , w) , (1 , u)
-          ≡⟨ ≡cong (λ v → ((1 , v) , (1 , u))) (ex w↾1i≡wi) ⟩
-          (1 , (w ↾ s≤s (s≤s z≤n))) , (1 , u)
-          ∎)
-          where
-            w↾1i≡wi : ∀ i → w i ≡ (w ↾ s≤s (s≤s z≤n)) i
-            w↾1i≡wi zeroF = ≡refl
-    step x₂ y₂ tt xs w p tr with tr zeroF
-    step x₂ y₂ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
-    step x₂ y₂ tt xs w p tr | tt | x₂ | Addτ.fromA a | x₂ | [ w0≡a ] | [ xs1≡x₂ ] =
-      -- x₂ -a→ x₂
-      (1 , (λ ()) , (s≤s (s≤s z≤n)) , (1 , u) , y₂ , w↾1≡τu , (ys , ≡refl , tr-ys , ≡refl) ,  [xs1,y₂]∈R )
-      where
-        [xs1,y₂]∈R : R (xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₂ )
-        [xs1,y₂]∈R = step-∋ R tt
-          (begin
-          x₂ , y₂
-          ≡⟨ ≡cong (λ x → x , y₂) (≡sym xs1≡x₂) ⟩
-          xs (fromℕ< (s≤s (s≤s (z≤n)))) , y₂
-          ∎)
-
-        u : Fin 1 → A+τ
-        u = (λ zeroF → fromA a)
-
-        ys : Fin 2 → Y
-        ys zeroF = y₂
-        ys (sucF zeroF) = y₂
-        
-        tr-ys : ∀ i → (ys (inject₁ i) , u i , ys (sucF i)) ∈ tr₂
-        tr-ys zeroF = tt
-        
-        lem : (u : FINWord A) → ∀ m → (v : FinWord m A) → u ≡ (m , v)
-          → ∃ (λ (proof : m ≡ proj₁ u) → ∀ i → proj₂ u (cast proof i) ≡ v i)
-        lem .(m , v) m v ≡refl = ( ≡refl , λ i → ≡cong v (casti≡i {m} {≡refl} i) )
-
-        w≡τu : ≡τ-carrier ((1 , w) , (1 , u))
-        w≡τu with remτ 1 w | inspect (remτ 1) w | remτ 1 u | inspect proj₁ (remτ 1 u) | w0≡a⇒remτ[w]≡a∷remτ[tail[w]] 0 w a w0≡a
-        w≡τu | .1 , w' | _ | .1 , .w' | [ ≡refl ] | ≡refl with 1 ≟ 1 | w' zeroF | inspect w' zeroF
-        w≡τu | _ , w' | [ remτw≡w' ] | _ , .w' | [ ≡refl ] | ≡refl | _ | a | [ w'0≡a ] = w'i≡vi
-          where
-            v : FinWord 1 A
-            v = a ∷ᶠ emptyF
-            
-            lemma : ∃ (λ proof → ∀ (i : Fin 1) → proj₂ (remτ 1 w) (cast proof i) ≡ w' i)
-            lemma = lem (remτ 1 w) 1 w' remτw≡w'
-
-            w'i≡vi : (i : Fin 1) → w' i ≡ v i
-            w'i≡vi zeroF = begin w' zeroF ≡⟨ w'0≡a ⟩ a ≡⟨⟩ v zeroF ∎
-
-        w↾1≡τu : ((1 , (w ↾ s≤s (s≤s z≤n))) , (1 , u)) ∈ ≡τ-carrier
-        w↾1≡τu = step-∋ ≡τ-carrier w≡τu
-          (begin
-          (1 , w) , (1 , u)
-          ≡⟨ ≡cong (λ v → ((1 , v) , (1 , u))) (ex w↾1i≡wi) ⟩
-          (1 , (w ↾ s≤s (s≤s z≤n))) , (1 , u)
-          ∎)
-          where
-            w↾1i≡wi : ∀ i → w i ≡ (w ↾ s≤s (s≤s z≤n)) i
-            w↾1i≡wi zeroF = ≡refl
-
-    1-bounded-≡τ-constrained-simulation : [ 1 ]-bounded-[ ≡τ ]-constrained-simulation 
-    1-bounded-≡τ-constrained-simulation = aBoundedConstrainedSimulation R final step
-
-    open import QSimulation.Soundness X Y A+τ na₁ na₂
-    x≤[≡τ]y : x₀ ≤[ na₁ , na₂ , ≡τ ] y₀
-    x≤[≡τ]y = soundness-of-bounded-simulation 1 (s≤s z≤n) ≡τ ≡τ-is-closed-under-concat 1-bounded-≡τ-constrained-simulation (x₀ , y₀) tt
-
-
-module Fig-1-2 where
-  data A : Set where
-    a : A
-    b : A
-
-  module NA₁ where
-    data X : Set where
-      x₀ : X
-      x₂ : X
-  
-    tr₁ : Pred' (X × A × X)
-    tr₁ (x₀ , a , x₂) = ⊤
-    tr₁ (x₂ , b , x₂) = ⊤
-    tr₁ _ = ⊥
-
-    acc₁ : Pred' X
-    acc₁ x₀ = ⊥
-    acc₁ x₂ = ⊤
-
-    init₁ : Pred' X
-    init₁ x₀ = ⊤
-    init₁ x₂ = ⊥
-
-    na₁ : NA X A
-    na₁ = anNA tr₁ init₁ acc₁
-  open NA₁
-
-  module NA₂ where
-    data Y : Set where
-      y₀ : Y
-      y₁ : Y
-      y₂ : Y
-      
-    tr₂ : Pred' (Y × A × Y)
-    tr₂ (y₀ , a , y₁) = ⊤
-    tr₂ (y₂ , b , y₁) = ⊤
-    tr₂ (y₂ , c , y₂) = ⊤
-    tr₂ _ = ⊥
-    
-    acc₂ : Pred' Y
-    acc₂ y₀ = ⊥
-    acc₂ y₁ = ⊥
-    acc₂ y₂ = ⊤
-  
-    init₂ : Pred' Y
-    init₂ y₀ = ⊤
-    init₂ y₁ = ⊥
-    init₂ y₂ = ⊥
-  
-    na₂ : NA Y A
-    na₂ = anNA tr₂ init₂ acc₂
-  open NA₂
+  open ConditionOnQ PA
+  ⊆*-is-closed-under-concat : [ ⊆* ]-is-closed-under-concat
+  ⊆*-is-closed-under-concat ((m , u) , (m' , u')) u-u' ((n , v) , (n' , v')) v-v' =
+    lemma-⊆*-is-closed-under-concat m n m' n' u v u' v' u-u' v-v'
+ 
