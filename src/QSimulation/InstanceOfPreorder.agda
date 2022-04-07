@@ -292,21 +292,12 @@ module Prefix (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
 module Substr (A : Set) where
 
   _is-monotone : ∀ {m n} → (Fin m → Fin n) → Set
-  _is-monotone {zero} {n} f = ⊤
-  _is-monotone {suc zero} {zero} f = ⊥
-  _is-monotone {suc zero} {suc n} f = ⊤
-  _is-monotone {suc (suc m)} {n} f = ∀ (i : Fin (suc m)) → f (inject₁ i) <ᶠ f (sucF i)
+  _is-monotone {m} {n} f = ∀ (i j : Fin m) → i <ᶠ j → f i <ᶠ f j
   
   idᶠ : ∀ {m} → Fin m → Fin m
   idᶠ i = i
   idᶠ-is-monotone : ∀ {m} → (idᶠ {m}) is-monotone
-  idᶠ-is-monotone {zero} = tt
-  idᶠ-is-monotone {suc zero} = tt
-  idᶠ-is-monotone {suc (suc m)} = λ (i : Fin (suc m)) → lem m i
-    where
-      lem : ∀ m → ∀ (i : Fin (suc m)) → toℕ (inject₁ i) < toℕ (sucF i)
-      lem m zeroF = s≤s z≤n
-      lem (suc m) (sucF i) = s≤s (lem m i)
+  idᶠ-is-monotone {m} = λ i j p → p
 
   ⊑substr-carrier : Pred' ((FINWord A) × (FINWord A))
   ⊑substr-carrier ((m , u) , (n , v)) = ∃[ f ] (f is-monotone) × (∀ i → u i ≡ v (f i))
@@ -314,40 +305,24 @@ module Substr (A : Set) where
   ⊑substr-refl : ∀ (w : FINWord A) → ⊑substr-carrier (w , w)
   ⊑substr-refl (n , w) = (idᶠ , idᶠ-is-monotone , (λ i → ≡refl))
 
-  postulate
-    f-monotone→i<j→fi<fj : ∀ {m n}
-      → (f : Fin m → Fin n)
-      → f is-monotone
-      → ∀ i j → i <ᶠ j → f i <ᶠ f j
-    {-
-    f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF zeroF ()
-    f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF (sucF ()) i<j
-    f-monotone→i<j→fi<fj {suc (suc m)} {n} f f-mon i (sucF j) (s≤s i≤j) = {!  !}
-    -}
-
   compose : ∀ {l m n} → (Fin l → Fin m) → (Fin m → Fin n) → (Fin l → Fin n)
   compose {l} {m} {n} f g i = g (f i)
+  
   compose-monotone : ∀ {l m n}
     → (f : Fin l → Fin m)
     → (f is-monotone)
     → (g : Fin m → Fin n)
     → (g is-monotone)
-    → ( (compose f g) is-monotone )
-  compose-monotone {zero} {m} {n} f f-mon g g-mon = tt
-  compose-monotone {suc zero} {suc (suc m)} {zero} f f-mon g g-mon with g zeroF
-  compose-monotone {suc zero} {suc (suc m)} {zero} f f-mon g g-mon | ()
-  compose-monotone {suc zero} {suc m} {suc n} f f-mon g g-mon = tt
-  compose-monotone {suc (suc l)} {m} {n} f f-mon g g-mon = λ i → f-monotone→i<j→fi<fj g g-mon (f (inject₁ i)) (f (sucF i)) (f-mon i)
-  
+    → ( (compose f g) is-monotone ) 
+  compose-monotone {l} {m} {n} f f-is-monotone g g-is-monotone i j i<j = g-is-monotone (f i) (f j) (f-is-monotone i j i<j)
+    
   ⊑substr-trans : (w w' w'' : FINWord A)
     → ⊑substr-carrier (w , w')
     → ⊑substr-carrier (w' , w'')
     → ⊑substr-carrier (w , w'')
   ⊑substr-trans (n , w) (n' , w') (n'' , w'') (f , f-monotone , w-f-w') (f' , f'-monotone , w'-f'-w'') =
-    ( compose f f' , compose-monotone f f-monotone f' f'-monotone ,
-    (λ i → begin w i ≡⟨ w-f-w' i ⟩ w' (f i) ≡⟨ w'-f'-w'' (f i) ⟩ w'' (f' (f i)) ∎)
-    )
-  
+    (compose f f' , compose-monotone f f-monotone f' f'-monotone , (λ i → begin w i ≡⟨ w-f-w' i ⟩ w' (f i) ≡⟨ w'-f'-w'' (f i) ⟩ w'' (f' (f i)) ∎))
+
   ⊑substr = aPreorder ⊑substr-carrier ⊑substr-refl ⊑substr-trans
 
 module Subset (A : Set) where
