@@ -314,14 +314,16 @@ module Substr (A : Set) where
   ⊑substr-refl : ∀ (w : FINWord A) → ⊑substr-carrier (w , w)
   ⊑substr-refl (n , w) = (idᶠ , idᶠ-is-monotone , (λ i → ≡refl))
 
-  {-
-  f-monotone→i<j→fi<fj : ∀ {m n}
-    → (f : Fin m → Fin n)
-    → f is-monotone
-    → ∀ i j → i <ᶠ j → f i <ᶠ f j
-  f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF zeroF ()
-  f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF (sucF ()) i<j
-  f-monotone→i<j→fi<fj {suc (suc m)} {n} f f-mon i (sucF j) (s≤s i≤j) = {!  !}
+  postulate
+    f-monotone→i<j→fi<fj : ∀ {m n}
+      → (f : Fin m → Fin n)
+      → f is-monotone
+      → ∀ i j → i <ᶠ j → f i <ᶠ f j
+    {-
+    f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF zeroF ()
+    f-monotone→i<j→fi<fj {suc zero} {suc n} f tt zeroF (sucF ()) i<j
+    f-monotone→i<j→fi<fj {suc (suc m)} {n} f f-mon i (sucF j) (s≤s i≤j) = {!  !}
+    -}
 
   compose : ∀ {l m n} → (Fin l → Fin m) → (Fin m → Fin n) → (Fin l → Fin n)
   compose {l} {m} {n} f g i = g (f i)
@@ -345,7 +347,9 @@ module Substr (A : Set) where
     ( compose f f' , compose-monotone f f-monotone f' f'-monotone ,
     (λ i → begin w i ≡⟨ w-f-w' i ⟩ w' (f i) ≡⟨ w'-f'-w'' (f i) ⟩ w'' (f' (f i)) ∎)
     )
-  -}
+  
+  ⊑substr = aPreorder ⊑substr-carrier ⊑substr-refl ⊑substr-trans
+
 module Subset (A : Set) where
   PA : Set
   PA = A → Bool
