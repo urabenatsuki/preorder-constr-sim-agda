@@ -241,6 +241,8 @@ module Fig-1-2 where
     a : A
     b : A
 
+  open Substr A
+
   module NA₁ where
     data X : Set where
       x₀ : X
@@ -271,8 +273,8 @@ module Fig-1-2 where
       
     tr₂ : Pred' (Y × A × Y)
     tr₂ (y₀ , a , y₁) = ⊤
-    tr₂ (y₂ , b , y₁) = ⊤
-    tr₂ (y₂ , c , y₂) = ⊤
+    tr₂ (y₁ , b , y₂) = ⊤
+    tr₂ (y₂ , b , y₂) = ⊤
     tr₂ _ = ⊥
     
     acc₂ : Pred' Y
@@ -288,6 +290,71 @@ module Fig-1-2 where
     na₂ : NA Y A
     na₂ = anNA tr₂ init₂ acc₂
   open NA₂
+
+  open QSimulationBase A X Y na₁ na₂
+  
+  module 1Bounded-a where
+    R : Pred' (X × Y)
+    -- R = { (x₀, y₀), (x₂, y₂) }
+    R (x₀ , y₀) = ⊤
+    R (x₂ , y₀) = ⊥
+    R (x₀ , y₁) = ⊥
+    R (x₂ , y₁) = ⊥
+    R (x₀ , y₂) = ⊥
+    R (x₂ , y₂) = ⊤
+
+    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ ⊑substr ] R x y
+    final .(xs zeroF) y [x,y]∈R zero xs w ≡refl tr lastxs∈F₁ (s≤s z≤n) with xs zeroF
+    final .(xs zeroF) y₂ [x,y]∈R zero xs w ≡refl tr lastxs∈F₁ (s≤s z≤n) | x₂ =
+      ((0 , λ ()) , y₂ , ((λ n → n) , tt , (λ ())) , ((λ x → y₂) , ≡refl , (λ ()) , ≡refl) , tt)
+
+    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ ⊑substr ] R x y
+    step .(xs zeroF) y [x,y]∈R xs w ≡refl tr with tr zeroF 
+    step .(xs zeroF) y [x,y]∈R xs w ≡refl tr | tr0 with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
+    step .(xs zeroF) y₀ [x,y]∈R xs w ≡refl tr | tr0 | x₀ | a | x₂ | [ p ] | [ q ] =
+      (1 , (λ ()) , s≤s (s≤s z≤n) , (2 , u) , y₂ , (f , f-is-monotone , λ {zeroF → p}) , (ys , ≡refl , tr-ys , ≡refl) , [lastxs,lastys]∈R)
+      where
+        u : FinWord 2 A
+        u zeroF = a
+        u (sucF zeroF) = b
+    
+        ys : FinWord 3 Y
+        ys zeroF = y₀
+        ys (sucF zeroF) = y₁
+        ys (sucF (sucF zeroF)) = y₂
+
+        f : Fin 1 → Fin 2
+        f zeroF = zeroF
+
+        f-is-monotone : f is-monotone
+        f-is-monotone = tt
+
+        tr-ys : (i : Fin 2) → tr₂ (ys (inject₁ i) , u i , ys (sucF i))
+        tr-ys zeroF = tt
+        tr-ys (sucF zeroF) = tt
+        
+        [lastxs,lastys]∈R : (xs (fromℕ< (s≤s (s≤s z≤n))) , y₂) ∈ R
+        [lastxs,lastys]∈R with xs (fromℕ< (s≤s (s≤s z≤n)))
+        [lastxs,lastys]∈R | x₂ = tt
+    step .(xs zeroF) y₂ [x,y]∈R xs w ≡refl tr | tr0 | x₂ | b | x₂ | [ p ] | [ q ] =
+      (1 , (λ ()) , s≤s (s≤s z≤n) , (1 , u) , y₂ , (f , f-is-monotone , λ {zeroF → p} ) , (ys , ≡refl , (λ {zeroF → tt}) , ≡refl) , [lastxs,lastys]∈R )
+      where
+        u : FinWord 1 A
+        u zeroF = b
+        
+        f : Fin 1 → Fin 1
+        f zeroF = zeroF
+
+        f-is-monotone : f is-monotone
+        f-is-monotone = tt
+
+        ys : FinWord 2 Y
+        ys zeroF = y₂
+        ys (sucF zeroF) = y₂
+
+        [lastxs,lastys]∈R : (xs (fromℕ< (s≤s (s≤s z≤n))) , y₂) ∈ R
+        [lastxs,lastys]∈R with xs (fromℕ< (s≤s (s≤s z≤n)))
+        [lastxs,lastys]∈R | x₂ = tt
 
 module Fig-1-3 where
   data A : Set where
