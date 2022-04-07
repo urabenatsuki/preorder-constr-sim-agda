@@ -306,7 +306,7 @@ module Fig-1-2 where
     final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ ⊑substr ] R x y
     final .(xs zeroF) y [x,y]∈R zero xs w ≡refl tr lastxs∈F₁ (s≤s z≤n) with xs zeroF
     final .(xs zeroF) y₂ [x,y]∈R zero xs w ≡refl tr lastxs∈F₁ (s≤s z≤n) | x₂ =
-      ((0 , λ ()) , y₂ , ((λ n → n) , tt , (λ ())) , ((λ x → y₂) , ≡refl , (λ ()) , ≡refl) , tt)
+      ((0 , λ ()) , y₂ , ((λ n → n) , (λ ()) , (λ ())) , ((λ x → y₂) , ≡refl , (λ ()) , ≡refl) , tt)
 
     step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ ⊑substr ] R x y
     step .(xs zeroF) y [x,y]∈R xs w ≡refl tr with tr zeroF 
@@ -327,7 +327,8 @@ module Fig-1-2 where
         f zeroF = zeroF
 
         f-is-monotone : f is-monotone
-        f-is-monotone = tt
+        f-is-monotone zeroF zeroF i<j = i<j
+        f-is-monotone zeroF (sucF ()) i<j
 
         tr-ys : (i : Fin 2) → tr₂ (ys (inject₁ i) , u i , ys (sucF i))
         tr-ys zeroF = tt
@@ -346,7 +347,8 @@ module Fig-1-2 where
         f zeroF = zeroF
 
         f-is-monotone : f is-monotone
-        f-is-monotone = tt
+        f-is-monotone zeroF zeroF i<j = i<j
+        f-is-monotone zeroF (sucF ()) i<j
 
         ys : FinWord 2 Y
         ys zeroF = y₂
