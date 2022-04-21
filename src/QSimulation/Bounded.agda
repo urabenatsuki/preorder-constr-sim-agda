@@ -7,7 +7,7 @@ module QSimulation.Bounded
 
 open import Data.Nat
 open import Data.Nat.Properties
-    using (≤-trans; ≤-step; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
+    using (≤-trans; ≤-step; <-trans; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
 open import Data.Nat.Induction
     using (<-rec)
 open import Data.Fin
@@ -675,7 +675,6 @@ Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat (QSimulationBase.aBoundedC
         Step : ∀ x y → (x , y) ∈ R → Step[ Q ] R x y
         Step x y [x,y]∈R = StepM⇒FinalM⇒Step M Q Q-is-closed-under-concat R StepM FinalM x y [x,y]∈R
 
-
 {-
 -------- up-to version --------
 -}
@@ -1081,7 +1080,7 @@ module LemmaUpto
                     tr-xs-w[k₁+i] = tr-xs-w (cast k₁+k₂≡ (fromℕ k₁ +F i))
 
             u₂∈L[xₖ₁] : inj k₂ u₂ ∈ FINAccLang na₁ (xs₁ (fromℕ< sk₁≤sM))
-            u₂∈L[xₖ₁] = ? -- (zs₂ , head[zs₂]≡xₖ₁ ,  tr-zs₂-u₂ , last[zs₂]∈F₁)
+            u₂∈L[xₖ₁] = {!   !} -- (zs₂ , head[zs₂]≡xₖ₁ ,  tr-zs₂-u₂ , last[zs₂]∈F₁)
 
             {-
             x₀ ⇝[u₁]  xₖ₁ ⇝[u₂] xₙ ∈ F₁
@@ -1124,9 +1123,12 @@ module LemmaUpto
             [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂] :
                 ∃[ n^ ] ∃ λ (u^ : FinWord n^ A)
                 → (inj n^ u^ ∈ FINAccLang na₁ x^) × ((inj k₂ u₂ , inj n^ u^) ∈ ∣Q₁∣) × (n^ ≤ k₂)
+            [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂] = {!   !}
+            {-
             [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂] with xₖ₁≤[Q₁]x^ (inj k₂ u₂) u₂∈L[xₖ₁]
             [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂] | (n^ , u^) , u^∈L[x^] , [u₂,u^]∈Q₁ =
-                (n^ , u^ , u^∈L[x^] , [u₂,u^]∈Q₁ , [w,w']∈Q₁→∣w'∣≤∣w∣ (inj k₂ u₂) (inj n^ u^) [u₂,u^]∈Q₁)
+                (n^ , u^ , u^∈L[x^] , [u₂,u^]∈Q₁ , [w,w']∈Q₁→∣w'∣≤∣w∣ (inj k₂ u₂) (inj n^ u^) [u₂,u^]∈Q₁) -}
+
             n^ : ℕ
             n^ = proj₁ [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂]
             u^ : FinWord n^ A
@@ -1138,101 +1140,133 @@ module LemmaUpto
             n^≤k₂ : n^ ≤ k₂
             n^≤k₂ = proj₂ (proj₂ (proj₂ (proj₂ [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂])))
 
-
-            {- Use induction hypothesis IH -}
             {-
-            ih : ∃[ v₂ ] {- v₂ : FINWord A -}
-                ∃[ y'' ] {- y'' : X₂ -}
-                ((k₂ , u₂) , v₂) ∈ ∣Q∣
-                × (v₂ ∈ FINWord-from[ y' ]to[ y'' ] na₂)
-                × (y'' ∈ NA.accept na₂)
-            ih = IH k₂ sk₂≤n (xs₁ (fromℕ< sk₁≤sM)) y' [xs₁[fromℕ<[sk₁≤sM]],y']∈R₁RR₂ zs₂ u₂ ≡refl tr-zs₂-u₂ last[zs₂]∈F₁ k₂<N
-                where
-                    sk₂≤n : suc k₂ ≤ M + l
-                    sk₂≤n = a+b≡c→a≢0→sb≤c k₁ k₂ (M + l) k₁+k₂≡n k₁≢0
-                        where
-                            a+b≡c→a≢0→sb≤c : ∀ (a b c : ℕ) → a + b ≡ c → a ≢  zero → suc b ≤ c
-                            a+b≡c→a≢0→sb≤c zero b .(zero + b) ≡refl zero≢zero with zero≢zero ≡refl
-                            a+b≡c→a≢0→sb≤c zero b .(zero + b) ≡refl zero≢zero | ()
-                            a+b≡c→a≢0→sb≤c (suc a) b .(suc a + b) ≡refl _ = s≤s (m≤n+m b a)
-
-                    k₂<N : suc k₂ ≤ N
-                    k₂<N = ≤-trans sk₂≤n (<⇒≤ n<N)
+            -- By applying the induction hypothesis IH to
+                x^ ⇝[u^] x♯ ∈ F₁
+                |R
+                y^
+            -- we have v^ and y♯ such that
+                x^ ⇝[u^] x♯ ∈ F₁
+                |R   Q
+                y^ ⇝[v^] y♯ ∈ F₂
             -}
+            ih : ∃[ v^ ] {- v^ : FINWord A -}
+                ∃[ y♯ ] {- y♯ : X₂ -}
+                (inj n^ u^ , v^) ∈ ∣Q∣
+                × (v^ ∈ FINWord-from[ y^ ]to[ y♯ ] na₂)
+                × (y♯ ∈ NA.accept na₂)
+            ih = IH n^ n^<M+l x^ y^ [x^,y^]∈R xs^ u^ x^≡xs^0 tr-xs^ last[xs^]∈F₁ n^<N
+                where
+                    lem : ∀ a b c → a ≢ 0 → a + b ≡ c → b < c
+                    lem zero b .(zero + b) a≢0 ≡refl with a≢0 ≡refl
+                    lem zero b .(zero + b) a≢0 ≡refl | ()
+                    lem (suc a) b .(suc a + b) a≢0 ≡refl = s≤s (m≤n+m b a)
+                    n^<M+l : n^ < M + l
+                    n^<M+l = ≤-trans (s≤s n^≤k₂) (lem k₁ k₂ (M + l) k₁≢0 k₁+k₂≡n)
 
+                    xs^ : Fin (suc n^) → X₁
+                    xs^ = proj₁ u^∈L[x^]
+
+                    x^≡xs^0 : x^ ≡ xs^ zeroF
+                    x^≡xs^0 = ≡sym (proj₁ (proj₂ u^∈L[x^]))
+
+                    tr-xs^ : ∀ i → (xs^ (inject₁ i) , u^ i , xs^ (sucF i)) ∈ NA.trans na₁
+                    tr-xs^ = proj₁ (proj₂ (proj₂ u^∈L[x^]))
+
+                    last[xs^]∈F₁ : (xs^ (fromℕ n^)) ∈ NA.accept na₁
+                    last[xs^]∈F₁ = proj₂ (proj₂ (proj₂ u^∈L[x^]))
+
+                    n^<N : n^ < N
+                    n^<N = <-trans n^<M+l n<N
+            m^ : ℕ
+            m^ = proj₁ (proj₁ ih)
+            v^ : FinWord m^ A
+            v^ = proj₂ (proj₁ ih)
+            y♯ : X₂
+            y♯ = proj₁ (proj₂ ih)
+            [u^,v^]∈Q : (inj n^ u^ , inj m^ v^) ∈ ∣Q∣
+            [u^,v^]∈Q = proj₁ (proj₂ (proj₂ ih))
+            y^-v^-y♯ : inj m^ v^ ∈ FINWord-from[ y^ ]to[ y♯ ] na₂
+            y^-v^-y♯ = proj₁ (proj₂ (proj₂ (proj₂ ih)))
+            y♯∈F₂ : y♯ ∈ NA.accept na₂
+            y♯∈F₂ = proj₂ (proj₂ (proj₂ (proj₂ ih)))
+
+            v^∈L₂[y^] : inj m^ v^ ∈ FINAccLang na₂ y^
+            v^∈L₂[y^] = (ys₂^ , ys₂^0≡y^ , tr , last[ys₂^]∈F₂)
+                where
+                    ys₂^ : FinWord (suc m^) X₂
+                    ys₂^ = proj₁ y^-v^-y♯
+
+                    ys₂^0≡y^ : headF ys₂^ ≡ y^
+                    ys₂^0≡y^ = proj₁ (proj₂ y^-v^-y♯)
+
+                    tr : ∀ i → (ys₂^ (inject₁ i) , v^ i , ys₂^ (sucF i)) ∈ NA.trans na₂
+                    tr = proj₁ (proj₂ (proj₂ y^-v^-y♯))
+
+                    last[ys₂^]∈F₂ : lastF ys₂^ ∈ NA.accept na₂
+                    last[ys₂^]∈F₂ = step-∋ (NA.accept na₂) y♯∈F₂ (≡sym (proj₂ (proj₂ (proj₂ y^-v^-y♯))))
+            
+            {-
+            -- Now, (y^ , y') ∈ ≤Q₂
+                y^ ⇝[v^] y♯ ∈ F₂
+                |R₂⊆≤Q₂
+                y'
+            -- We have v₂ and y'' such that
+                y^ ⇝[v^]  y♯ ∈ F₂
+                |R₂   Q₂
+                y' ⇝[v₂]  y'' ∈ F₂
+            -}
+            y^≤[Q₂]y' : y^ ≤[ na₂ , na₂ , Q₂ ] y'
+            y^≤[Q₂]y' = R₂⊆[≤Q₂] [y^,y']∈R₂
+
+            [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂] :
+                ∃[ l₂ ] ∃ λ (v₂ : FinWord l₂ A)
+                    → (inj l₂ v₂ ∈ FINAccLang na₂ y') × ((inj m^ v^ , inj l₂ v₂) ∈ ∣Q₂∣)
+            [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂] with y^≤[Q₂]y' (inj m^ v^) v^∈L₂[y^]
+            [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂] | (l₂ , v₂) , v₂∈L[y'] , [v^,v₂]∈Q₂ = (l₂ , v₂ , v₂∈L[y'] , [v^,v₂]∈Q₂)
+
+            l₂ : ℕ
+            l₂ = proj₁ [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂]
+            v₂ : FinWord l₂ A
+            v₂ = proj₁ (proj₂ [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂])
+            v₂^∈L[y'] : inj l₂ v₂ ∈ FINAccLang na₂ y'
+            v₂^∈L[y'] = proj₁ (proj₂ (proj₂ [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂]))
+            [v^,v₂]∈Q₂ : (inj m^ v^ , inj l₂ v₂) ∈ ∣Q₂∣
+            [v^,v₂]∈Q₂ = proj₂ (proj₂ (proj₂ [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂]))
+
+            {-
+            -- (w₂ , w'') ∈ Q₁QQ₂
+                xₖ ⇝[u₂] xₙ ∈ F₁
+                |R₁   Q₁
+                x^ ⇝[u^] x♯ ∈ F₁
+                |R    Q
+                y^ ⇝[v^] y♯ ∈ F₂
+                |R₂   Q₂
+                y' ⇝[v₂] y'' ∈ F₂
+            -- Since (Q,Q₁,Q₂) is reasonable, we have Q₁QQ₂ ⊆ Q and then (w₂,w'') ∈ Q
+                xₖ ⇝[w₂] xₙ ∈ F₁
+                |R₁  |
+                x^   |
+                |R   |Q
+                y^   |
+                |R₂  |
+                y' ⇝[v₂] y'' ∈ F₂
+            -}
+            [u₂,v₂]∈Q : (inj k₂ u₂ , inj l₂ v₂) ∈ ∣Q∣
+            [u₂,v₂]∈Q = Q₁QQ₂⊆Q [u₂,v₂]∈Q₁QQ₂
+                where
+                    [u₂,v₂]∈Q₁QQ₂ : (inj k₂ u₂ , inj l₂ v₂) ∈ ∣Q₁∣ ∘ᵣ ∣Q∣ ∘ᵣ ∣Q₂∣
+                    [u₂,v₂]∈Q₁QQ₂ = {!   !} -- (inj m^ v^ , (inj n^ u^ , [u₂,u^]∈Q₁ , [u^,v^]∈Q) , [v^,v₂]∈Q₂)
             construction :
                 ∃[ v₁v₂ ] {- v₁v₂ : FINWord A -}
                 ∃[ y'' ] {- y'' : X₂ -}
                 (((M + l) , w) , v₁v₂) ∈ ∣Q∣
                 × (v₁v₂ ∈ FINWord-from[ y ]to[ y'' ] na₂)
                 × (y'' ∈ NA.accept na₂)
-            construction = {!   !}
-            {-
-            construction with ih
-            construction | v₂ , y'' , [u₂,v₂]∈Q , y'⇝[v₂]y'' , y''∈F₂
-                with v₂ | y'⇝[v₂]y''
-            construction | v₂ , y'' , [u₂,v₂]∈Q , y'⇝[v₂]y'' , y''∈F₂
-                | l₂ , v₂' | ys₂ , ys₂0≡y' , tr-ys₂-v₂ , last[ys₂]≡y'' =
-                ((l₁ + l₂ , v₁'v₂') , y'' , [w,v₁v₂]∈Q , (ys₁·ys₂ , ys₁·ys₂0≡ys0  , tr-ys₁·ys₂-v₁v₂ , last[ys₁·ys₂]≡y'') , y''∈F₂)
-                where
-                    l₁ = proj₁ v₁
-                    v₁' = proj₂ v₁
-                    
-                    v₁'v₂' : FinWord (l₁ + l₂) A
-                    v₁'v₂' = concat v₁' v₂'
+            construction with v₂^∈L[y']
+            construction | ys₂ , ys₂0≡y' , tr , last[ys₂]∈F₂ = {!   !}
 
-                    ys₁ : FinWord (suc l₁) X₂
-                    ys₁ = proj₁ y⇝[v₁]y'
 
-                    last[ys₁]≡y' : ys₁ (fromℕ l₁) ≡ y'
-                    last[ys₁]≡y' = proj₂ (proj₂ (proj₂ y⇝[v₁]y'))
-
-                    ys₁·ys₂ : FinWord (suc (l₁ + l₂)) X₂
-                    ys₁·ys₂ = concat ys₁ (tailF ys₂)
-
-                    ys₁·ys₂0≡ys0 : ys₁·ys₂ zeroF ≡ y
-                    ys₁·ys₂0≡ys0 = begin
-                        ys₁ zeroF
-                        ≡⟨ proj₁ (proj₂ y⇝[v₁]y') ⟩
-                        y
-                        ∎
-
-                    ys₂0≡last[ys₁] : ys₂ zeroF ≡ ys₁ (fromℕ l₁)
-                    ys₂0≡last[ys₁] = begin
-                        ys₂ zeroF
-                        ≡⟨ ys₂0≡y' ⟩
-                        y'
-                        ≡⟨ ≡sym last[ys₁]≡y' ⟩
-                        ys₁ (fromℕ l₁)
-                        ∎
-
-                    last[ys₁·ys₂]≡y'' : ys₁·ys₂ (fromℕ (l₁ + l₂)) ≡ y''
-                    last[ys₁·ys₂]≡y'' = begin
-                        ys₁·ys₂ (fromℕ (l₁ + l₂))
-                        ≡⟨ ≡sym (last-concat {X₂} {l₁} {l₂} ys₁ ys₂ ys₂0≡last[ys₁]) ⟩
-                        ys₂ (fromℕ l₂)
-                        ≡⟨ last[ys₂]≡y'' ⟩
-                        y''
-                        ∎
-
-                    tr-ys₁-v₁ : (i : Fin l₁) → (ys₁ (inject₁ i) , v₁' i , ys₁ (sucF i)) ∈ NA.trans na₂
-                    tr-ys₁-v₁ = proj₁ (proj₂ (proj₂ y⇝[v₁]y'))
-
-                    open QSimulation.Lemma.Transition X₂ A na₂ l₁ l₂ ys₁ ys₂ ys₂0≡last[ys₁] v₁' v₂' tr-ys₁-v₁ tr-ys₂-v₂
-                    tr-ys₁·ys₂-v₁v₂ : (i : Fin (l₁ + l₂)) → NA.trans na₂ (ys₁·ys₂ (inject₁ i) , concat v₁' v₂' i , ys₁·ys₂ (sucF i))
-                    tr-ys₁·ys₂-v₁v₂ i = tr i
-
-                    [w,v₁v₂]∈Q : ((M + l , w) , (l₁ + l₂ , v₁'v₂')) ∈ ∣Q∣
-                    [w,v₁v₂]∈Q = step-∋ ∣Q∣
-                        (Q-is-closed-under-concat ((k₁ , u₁) , (l₁ , v₁')) [u₁,v₁]∈Q ((k₂ , u₂) , (l₂ , v₂')) [u₂,v₂]∈Q)
-                        (begin
-                        (k₁ + k₂ , concat u₁ u₂) , (l₁ + l₂ , v₁'v₂')
-                        ≡⟨ ≡cong (λ a → (k₁ + k₂ , a) , (l₁ + l₂ , v₁'v₂')) ([concat-split-w]≡w' w k₁≤n) ⟩
-                        (k₁ + k₂ , λ i → w (cast k₁+k₂≡n i)) , (l₁ + l₂ , v₁'v₂')
-                        ≡⟨ ≡cong (λ a → a , (l₁ + l₂ , v₁'v₂')) (≡sym (inj[m][w]≡inj[n][λi→w[cast[i]]] (M + l) (k₁ + k₂) w k₁+k₂≡n)) ⟩
-                        (M + l , w) , (l₁ + l₂ , v₁'v₂')
-                        ∎)
-                        -}
 
     -- finalN : ∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y
     -- finalN x y [x,y]∈R n = <-rec (λ n → _) lemma n x y [x,y]∈R
