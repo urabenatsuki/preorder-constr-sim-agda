@@ -205,10 +205,10 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
   record [_]-bounded-[_,_,_]-constrained-simulation-upto
     (M : ℕ) (Q : Preorder) (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂)) : Set₁
     where
-    constructor aConstrainedSimulationUpto
+    constructor aBoundedConstrainedSimulationUpto
     field
       R : Pred' (X₁ × X₂)
-      final : ∀ x y → R (x , y) → Final[ Q ] R x y
+      final : ∀ x y → R (x , y) → Final[ M ][ Q ] R x y
       step : ∀ x y → R (x , y) → StepUpto[ M ][ Q , R₁ , R₂ ] R x y
 
   record [_,_,_]-constrained-simulation-upto

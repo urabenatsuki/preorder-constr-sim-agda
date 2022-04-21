@@ -112,7 +112,7 @@ M≤N⇒StepM⇒StepN {M} {N} M≤N Q@(aPreorder ∣Q∣ _ _) R .(xs zeroF) y St
         w' : FINWord A
         w' = proj₁ (proj₂ (proj₂ (proj₂ stepM)))
 
-        y' : X₂
+        y' : X₂ 
         y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ stepM))))
 
         [w↾<M↾≤k,w']∈Q : ((k , (w↾<M ↾ sk≤sM)) , w') ∈ ∣Q∣
@@ -794,9 +794,9 @@ module LemmaUpto
     (Q₁@(aPreorder ∣Q₁∣ _ _) : Preorder)
     (Q₂@(aPreorder ∣Q₂∣ _ _) : Preorder)
     (Q-is-reasonable@(Q-is-closed-under-concat , [w,w']∈Q₁→∣w'∣≤∣w∣ , Q₁QQ₂⊆Q) : [ Q , Q₁ , Q₂ ]-is-reasonable)
+    (R : Pred' (X₁ × X₂))
     (R₁ : Pred' (X₁ × X₁)) (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
     (R₂ : Pred' (X₂ × X₂)) (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
-    (R : Pred' (X₁ × X₂))
     (StepMupto : ∀ x y → (x , y) ∈ R → StepUpto[ M ][ Q , R₁ , R₂ ] R x y)
     (FinalM : ∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
     where
@@ -899,15 +899,18 @@ module LemmaUpto
             k₁≤n : k₁ ≤ M + l
             k₁≤n = ≤-pred sk₁≤sn
 
-            v₁ : FINWord A
-            v₁ = proj₁ (proj₂ (proj₂ (proj₂ stepMupto)))
+            l₁ : ℕ
+            l₁ = proj₁ (proj₁ (proj₂ (proj₂ (proj₂ stepMupto))))
+            v₁ : FinWord l₁ A
+            v₁ = proj₂ (proj₁ (proj₂ (proj₂ (proj₂ stepMupto))))
 
             y' : X₂
             y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ stepMupto))))
 
-            [w₁↾≤k₁,v₁]∈Q : ((k₁ , (w₁ ↾ sk₁≤sM)) , v₁) ∈ ∣Q∣
+            [w₁↾≤k₁,v₁]∈Q : (inj k₁ (w₁ ↾ sk₁≤sM) , inj l₁ v₁) ∈ ∣Q∣
             [w₁↾≤k₁,v₁]∈Q = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepMupto)))))
 
+            y⇝[v₁]y' : v₁ ∈ FinWord-from[ y ]to[ y' ] na₂ l₁
             y⇝[v₁]y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ stepMupto))))))
 
             [xs₁[fromℕ<[sk₁≤sM]],y']∈R₁RR₂ : (xs₁ (fromℕ< sk₁≤sM) , y') ∈ (R₁ ∘ᵣ R ∘ᵣ R₂)
@@ -960,12 +963,12 @@ module LemmaUpto
                 u₁ i
                 ∎
             
-            [u₁,v₁]∈Q : ((k₁ , u₁) , v₁) ∈ ∣Q∣
+            [u₁,v₁]∈Q : (inj k₁ u₁ , inj l₁ v₁) ∈ ∣Q∣
             [u₁,v₁]∈Q = step-∋ ∣Q∣ [w₁↾≤k₁,v₁]∈Q 
                 (begin
-                (k₁ , (w₁ ↾ sk₁≤sM)) , v₁
-                ≡⟨ ≡cong (λ a → (k₁ , a) , v₁) (ex w₁-u₁) ⟩
-                (k₁ , u₁) , v₁
+                inj k₁ (w₁ ↾ sk₁≤sM) , inj l₁ v₁
+                ≡⟨ ≡cong (λ a → (k₁ , a) , inj l₁ v₁) (ex w₁-u₁) ⟩
+                inj k₁ u₁ , inj l₁ v₁
                 ∎)
 
             k₁+sk₂≡ : toℕ (fromℕ k₁) + suc k₂ ≡ suc (M + l)
@@ -1108,24 +1111,25 @@ module LemmaUpto
             [y^,y']∈R₂ = proj₂ (proj₂ [xs₁[fromℕ<[sk₁≤sM]],y']∈R₁RR₂)
             
             module Lemma-A
+                (xₖ₁ : X₁)
                 (x^ : X₁)
-                ([xₖ₁,x^]∈R₁ : (xs₁ (fromℕ< sk₁≤sM) , x^) ∈ R₁)
+                ([xₖ₁,x^]∈R₁ : (xₖ₁ , x^) ∈ R₁)
                 (k₂ : ℕ)
                 (k₁+k₂≡n : k₁ + k₂ ≡ M + l)
                 (u₂ : FinWord k₂ A)
-                (u₂∈L[xₖ₁] : inj k₂ u₂ ∈ FINAccLang na₁ (xs₁ (fromℕ< sk₁≤sM)))
+                (u₂∈L[xₖ₁] : inj k₂ u₂ ∈ FINAccLang na₁ xₖ₁)
                 where
 
                 {-
-                xₖ ⇝[u₂] xₙ ∈ F₁
+                xₖ₁ ⇝[u₂] xₙ ∈ F₁
                 |R₁⊆≤Q₁
                 x^
                 -}
-                xₖ₁≤[Q₁]x^ : xs₁ (fromℕ< sk₁≤sM) ≤[ na₁ , na₁ , Q₁ ]  x^
+                xₖ₁≤[Q₁]x^ : xₖ₁ ≤[ na₁ , na₁ , Q₁ ]  x^
                 xₖ₁≤[Q₁]x^ = R₁⊆[≤Q₁] [xₖ₁,x^]∈R₁
 
                 {-
-                xₖ ⇝[u₂] xₙ ∈ F₁
+                xₖ₁ ⇝[u₂] xₙ ∈ F₁
                 |R₁   Q₁
                 x^ ⇝[u^] x♯ ∈ F₁
                 -}
@@ -1147,7 +1151,7 @@ module LemmaUpto
                 n^≤k₂ : n^ ≤ k₂
                 n^≤k₂ = proj₂ (proj₂ (proj₂ (proj₂ [n^,u^,u^∈L[x^],[u₂,u^]∈Q₁,n^≤k₂])))
 
-            open Lemma-A x^ [xₖ₁,x^]∈R₁ k₂ k₁+k₂≡n u₂ u₂∈L[xₖ₁]
+            open Lemma-A (xs₁ (fromℕ< sk₁≤sM)) x^ [xₖ₁,x^]∈R₁ k₂ k₁+k₂≡n u₂ u₂∈L[xₖ₁]
 
             module Lemma-B
                 (x^ : X₁) (y^ : X₂)
@@ -1226,7 +1230,7 @@ module LemmaUpto
             open Lemma-B x^ y^ [x^,y^]∈R n^ n^≤k₂ u^ u^∈L[x^]
 
             module Lemma-C
-                (y^ : X₂)
+                (y^ : X₂) (y' : X₂)
                 ([y^,y']∈R₂ : (y^ , y') ∈ R₂)
                 (m^ : ℕ)
                 (v^ : FinWord m^ A)
@@ -1260,22 +1264,27 @@ module LemmaUpto
                 [v^,v₂]∈Q₂ : (inj m^ v^ , inj l₂ v₂) ∈ ∣Q₂∣
                 [v^,v₂]∈Q₂ = proj₂ (proj₂ (proj₂ [l₂,v₂,v₂∈L[y'],[v^,v₂]∈Q₂]))
 
-            open Lemma-C y^ [y^,y']∈R₂ m^ v^ v^∈L₂[y^]
+            open Lemma-C y^ y' [y^,y']∈R₂ m^ v^ v^∈L₂[y^]
 
             module Lemma-D
-                (x^ : X₁)
+                (k₁ : ℕ) (u₁ : FinWord k₁ A)
+                (l₁ : ℕ) (v₁ : FinWord l₁ A)
                 (k₂ : ℕ) (u₂ : FinWord k₂ A)
                 (n^ : ℕ) (u^ : FinWord n^ A)
                 (m^ : ℕ) (v^ : FinWord m^ A)
                 (l₂ : ℕ) (v₂ : FinWord l₂ A)
+                (k₁+k₂≡n : k₁ + k₂ ≡ M + l)
+                ([u₁,v₁]∈Q : (inj k₁ u₁ , inj l₁ v₁) ∈ ∣Q∣)
                 ([u₂,u^]∈Q₁ : (inj k₂ u₂ , inj n^ u^) ∈ ∣Q₁∣)
                 ([u^,v^]∈Q : (inj n^ u^ , inj m^ v^) ∈ ∣Q∣)
                 ([v^,v₂]∈Q₂ : (inj m^ v^ , inj l₂ v₂) ∈ ∣Q₂∣)
-                (v₂^∈L[y']@(ys₂ , ys₂0≡y' , tr , last[ys₂]∈F₂) : inj l₂ v₂ ∈ FINAccLang na₂ y')
+                (v₂^∈L[y']@(ys₂ , ys₂0≡y' , tr-ys₂-v₂ , last[ys₂]∈F₂) : inj l₂ v₂ ∈ FINAccLang na₂ y')
+                (y⇝[v₁]y' : v₁ ∈ FinWord-from[ y ]to[ y' ] na₂ l₁)
+                (eq : concat u₁ u₂ ≡ λ i → w (cast k₁+k₂≡n i))
                 where
                 {-
                 -- (w₂ , w'') ∈ Q₁QQ₂
-                    xₖ ⇝[u₂] xₙ ∈ F₁
+                    xₖ₁ ⇝[u₂] xₙ ∈ F₁
                     |R₁   Q₁
                     x^ ⇝[u^] x♯ ∈ F₁
                     |R    Q
@@ -1283,7 +1292,7 @@ module LemmaUpto
                     |R₂   Q₂
                     y' ⇝[v₂] y'' ∈ F₂
                 -- Since (Q,Q₁,Q₂) is reasonable, we have Q₁QQ₂ ⊆ Q and then (w₂,w'') ∈ Q
-                    xₖ ⇝[w₂] xₙ ∈ F₁
+                    xₖ₁ ⇝[w₂] xₙ ∈ F₁
                     |R₁  |
                     x^   |
                     |R   |Q
@@ -1302,50 +1311,109 @@ module LemmaUpto
                     (((M + l) , w) , v₁v₂) ∈ ∣Q∣
                     × (v₁v₂ ∈ FINWord-from[ y ]to[ y'' ] na₂)
                     × (y'' ∈ NA.accept na₂)
-                construction = {!   !}
+                construction = (inj (l₁ + l₂) v₁v₂ , y'' , [w,v₁v₂]∈Q , (ys₁·ys₂ , ys₁·ys₂0≡ys0  , tr-ys₁·ys₂-v₁v₂ , last[ys₁·ys₂]≡y'')  , last[ys₂]∈F₂)
+                    where
+                        y'' : X₂
+                        y'' = lastF ys₂
 
-            open Lemma-D x^ k₂ u₂ n^ u^ m^ v^ l₂ v₂ [u₂,u^]∈Q₁ [u^,v^]∈Q [v^,v₂]∈Q₂ v₂^∈L[y']
+                        v₁v₂ : FinWord (l₁ + l₂) A
+                        v₁v₂ = concat v₁ v₂
+
+                        ys₁ : FinWord (suc l₁) X₂
+                        ys₁ = proj₁ y⇝[v₁]y'
+
+                        last[ys₁]≡y' : ys₁ (fromℕ l₁) ≡ y'
+                        last[ys₁]≡y' = proj₂ (proj₂ (proj₂ y⇝[v₁]y'))
+
+                        ys₁·ys₂ : FinWord (suc (l₁ + l₂)) X₂
+                        ys₁·ys₂ = concat ys₁ (tailF ys₂)
+
+                        ys₁·ys₂0≡ys0 : ys₁·ys₂ zeroF ≡ y
+                        ys₁·ys₂0≡ys0 = begin
+                            ys₁ zeroF
+                            ≡⟨ proj₁ (proj₂ y⇝[v₁]y') ⟩
+                            y
+                            ∎
+
+                        ys₂0≡last[ys₁] : ys₂ zeroF ≡ ys₁ (fromℕ l₁)
+                        ys₂0≡last[ys₁] = begin
+                            ys₂ zeroF
+                            ≡⟨ ys₂0≡y' ⟩
+                            y'
+                            ≡⟨ ≡sym last[ys₁]≡y' ⟩
+                            ys₁ (fromℕ l₁)
+                            ∎
+
+                        last[ys₁·ys₂]≡y'' : ys₁·ys₂ (fromℕ (l₁ + l₂)) ≡ y''
+                        last[ys₁·ys₂]≡y'' = begin
+                            ys₁·ys₂ (fromℕ (l₁ + l₂))
+                            ≡⟨ ≡sym (last-concat {X₂} {l₁} {l₂} ys₁ ys₂ ys₂0≡last[ys₁]) ⟩
+                            -- ys₂ (fromℕ l₂)
+                            -- ≡⟨⟩
+                            y''
+                            ∎
+
+                        tr-ys₁-v₁ : (i : Fin l₁) → (ys₁ (inject₁ i) , v₁ i , ys₁ (sucF i)) ∈ NA.trans na₂
+                        tr-ys₁-v₁ = proj₁ (proj₂ (proj₂ y⇝[v₁]y'))
+
+                        open QSimulation.Lemma.Transition X₂ A na₂ l₁ l₂ ys₁ ys₂ ys₂0≡last[ys₁] v₁ v₂ tr-ys₁-v₁ tr-ys₂-v₂
+                        tr-ys₁·ys₂-v₁v₂ : (i : Fin (l₁ + l₂)) → NA.trans na₂ (ys₁·ys₂ (inject₁ i) , concat v₁ v₂ i , ys₁·ys₂ (sucF i))
+                        tr-ys₁·ys₂-v₁v₂ i = tr i
+
+                        [w,v₁v₂]∈Q : (inj (M + l) w , inj (l₁ + l₂) v₁v₂) ∈ ∣Q∣
+                        [w,v₁v₂]∈Q = step-∋ ∣Q∣
+                            (Q-is-closed-under-concat (inj k₁ u₁ , inj l₁ v₁) [u₁,v₁]∈Q (inj k₂ u₂ , inj l₂ v₂) [u₂,v₂]∈Q)
+                            (begin
+                            (k₁ + k₂ , concat u₁ u₂) , (l₁ + l₂ , v₁v₂)
+                            ≡⟨ ≡cong (λ a → (k₁ + k₂ , a) , (l₁ + l₂ , v₁v₂)) eq ⟩
+                            (k₁ + k₂ , λ i → w (cast k₁+k₂≡n i)) , (l₁ + l₂ , v₁v₂)
+                            ≡⟨ ≡cong (λ a → a , (l₁ + l₂ , v₁v₂)) (≡sym (inj[m][w]≡inj[n][λi→w[cast[i]]] (M + l) (k₁ + k₂) w k₁+k₂≡n)) ⟩
+                            (M + l , w) , (l₁ + l₂ , v₁v₂)
+                            ∎)
+
+            open Lemma-D k₁ u₁ l₁ v₁ k₂ u₂ n^ u^ m^ v^ l₂ v₂ k₁+k₂≡n
+                    [u₁,v₁]∈Q [u₂,u^]∈Q₁ [u^,v^]∈Q [v^,v₂]∈Q₂ v₂^∈L[y'] y⇝[v₁]y'
+                    ([concat-split-w]≡w' w k₁≤n)
 
 
-    -- finalN : ∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y
-    -- finalN x y [x,y]∈R n = <-rec (λ n → _) lemma n x y [x,y]∈R
+    finalN : ∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y
+    finalN x y [x,y]∈R n = <-rec (λ n → _) lemma n x y [x,y]∈R
 
-{-
 M≤N⇒StepMupto⇒FinalM⇒FinalN :
     ∀ {M N : ℕ} → M ≤ N
-    → (Q : Preorder)
-    → [ Q ]-is-closed-under-concat
-    → (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂))
+    → (Q Q₁ Q₂ : Preorder)
+    → [ Q , Q₁ , Q₂ ]-is-reasonable
     → (R : Pred' (X₁ × X₂))
+    → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
     → (∀ x y → (x , y) ∈ R → StepUpto[ M ][ Q , R₁ , R₂ ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ N ][ Q ] R x y)
-M≤N⇒StepMupto⇒FinalM⇒FinalN {M} {N} M≤N Q Q-is-closed-under-concat R R₁ R₂ x y stepMupto finalM =
-    LemmaUpto.finalN M N M≤N Q Q-is-closed-under-concat R R₁ R₂ x y stepMupto finalM
--}
+M≤N⇒StepMupto⇒FinalM⇒FinalN {M} {N} M≤N Q Q₁ Q₂ QQ₁Q₂-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] x y stepMupto finalM =
+    LemmaUpto.finalN M N M≤N Q Q₁ Q₂ QQ₁Q₂-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] x y stepMupto finalM
 
-{-
 StepMupto⇒FinalM⇒Stepupto :
     (M : ℕ)
-    → (Q : Preorder)
-    → [ Q ]-is-closed-under-concat
+    → (Q Q₁ Q₂ : Preorder)
+    → [ Q , Q₁ , Q₂ ]-is-reasonable
     → (R : Pred' (X₁ × X₂))
-    → (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂))
+    → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
     → (∀ x y → (x , y) ∈ R → StepUpto[ M ][ Q , R₁ , R₂ ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ M ][ Q ] R x y)
     → (∀ x y → (x , y) ∈ R → StepUpto[ Q , R₁ , R₂ ] R x y)
-StepMupto⇒FinalM⇒Stepupto M Q _ R R₁ R₂ StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+StepMupto⇒FinalM⇒Stepupto M Q Q₁ Q₂ _ R R₁ _ R₂ _ StepMupto FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
     -- case analysis
     with k≤n⊎n<k (suc (suc n)) M
-StepMupto⇒FinalM⇒Stepupto M Q _ R R₁ R₂ StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+StepMupto⇒FinalM⇒Stepupto M Q Q₁ Q₂ _ R R₁ _ R₂ _ StepMupto FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
     -- n + 1 < M
     | inj₁ sn<M
     -- use FinalM
     with FinalM x y [x,y]∈R (suc n) xs w x≡xs0 tr-xs-w last[xs]∈F₁ sn<M
-StepMupto⇒FinalM⇒Stepupto M (aPreorder ∣Q∣ Qrefl Qtrans) _ R R₁ R₂ StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+StepMupto⇒FinalM⇒Stepupto M (aPreorder ∣Q∣ Qrefl Qtrans) Q₁ Q₂ _ R R₁ _ R₂ _ StepMupto FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
     | inj₁ sn<M
-    | (l , w') , y' , [w,w']∈Q , y⇝[w']y' , y'∈F₂ =
-    (suc n , (λ ()) , ≤-reflexive ≡refl , (l , w') , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂) )
+    | (l' , w') , y' , [w,w']∈Q , y⇝[w']y' , y'∈F₂ =
+    (suc n , (λ ()) , ≤-reflexive ≡refl , inj l' w' , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂) )
     where
         lem : (i : Fin (suc n)) → proj₁ (split w (≤-reflexive ≡refl)) i ≡ w i
         lem i = begin
@@ -1355,30 +1423,45 @@ StepMupto⇒FinalM⇒Stepupto M (aPreorder ∣Q∣ Qrefl Qtrans) _ R R₁ R₂ S
             ≡⟨ ≡cong w (inject≤[i][n≤n]≡i i (≤-reflexive ≡refl)) ⟩
             w i
             ∎
-        [w↾sn≤sn,w']∈Q : ((suc n , (w ↾ ≤-reflexive ≡refl)) , (l , w')) ∈ ∣Q∣
+        [w↾sn≤sn,w']∈Q : ((suc n , (w ↾ ≤-reflexive ≡refl)) , (l' , w')) ∈ ∣Q∣
         [w↾sn≤sn,w']∈Q = step-∋ ∣Q∣ [w,w']∈Q
             (begin
-            (suc n , w) , (l , w')
-            ≡⟨ ≡cong (λ a → (suc n , a) , (l , w')) (≡sym (ex lem)) ⟩
-            (suc n , proj₁ (split w (≤-reflexive ≡refl))) , (l , w')
+            (suc n , w) , (l' , w')
+            ≡⟨ ≡cong (λ a → (suc n , a) , (l' , w')) (≡sym (ex lem)) ⟩
+            (suc n , proj₁ (split w (≤-reflexive ≡refl))) , (l' , w')
             ≡⟨⟩
-            (suc n , (w ↾ (s≤s (≤-reflexive ≡refl)))) , (l , w')
+            (suc n , (w ↾ (s≤s (≤-reflexive ≡refl)))) , (l' , w')
             ∎)
-StepMupto⇒FinalM⇒Stepupto M Q Q-is-closed-under-concat R R₁ R₂ StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
+
+StepMupto⇒FinalM⇒Stepupto M Q@(aPreorder ∣Q∣ Qrefl Qtrans) Q₁ Q₂ QQ₁Q₂-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] StepMupto FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
     -- M ≤ n + 1
-    | inj₂ (s≤s M≤sn)
-    -- use M≤N⇒StepM⇒FinalM⇒finalN
-    with M≤N⇒StepMupto⇒FinalM⇒FinalN (≤-step M≤sn) Q Q-is-closed-under-concat R R₁ R₂ StepM FinalM
-StepMupto⇒FinalM⇒Stepupto M Q Q-is-closed-under-concat R R₁ R₂ StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
-    | inj₂ (s≤s M≤sn)
-    | StepN+1
-    with StepN+1 x y [x,y]∈R (suc n) xs w x≡xs0 tr-xs-w last[xs]∈F₁ (≤-reflexive ≡refl)
-StepMupto⇒FinalM⇒Stepupto M (aPreorder ∣Q∣ Qrefl Qtrans) Q-is-closed-under-concat R R₁ R₂ StepM FinalM x y [x,y]∈R n xs w x≡xs0 tr-xs-w last[xs]∈F₁
-    | inj₂ (s≤s M≤sn)
-    | StepN+1
-    | (l , w') , y' , [w,w']∈Q , y⇝[w']y' , y'∈F₂ =
-    (suc n , (λ ()) , (≤-reflexive ≡refl) , (l , w') , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂))
+    | inj₂ (s≤s M≤sn) =
+    (suc n ,  (λ ()) , ≤-reflexive ≡refl , [w'] , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂))
     where
+        Final[ssn] = M≤N⇒StepMupto⇒FinalM⇒FinalN (≤-step M≤sn) Q Q₁ Q₂ QQ₁Q₂-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] StepMupto FinalM x y [x,y]∈R
+        [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂] = Final[ssn] (suc n) xs w x≡xs0 tr-xs-w last[xs]∈F₁ (≤-reflexive ≡refl)
+
+
+        [w'] = proj₁ [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂]
+
+        l' : ℕ
+        l' = proj₁ [w']
+
+        w' : FinWord l' A
+        w' = proj₂ [w']
+
+        y' : X₂
+        y' = proj₁ (proj₂ [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂])
+
+        [w,w']∈Q : (inj (suc n) w , [w']) ∈ ∣Q∣
+        [w,w']∈Q = proj₁ (proj₂ (proj₂ [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂]))
+
+        y⇝[w']y' : w' ∈ FinWord-from[ y ]to[ y' ] na₂ l'
+        y⇝[w']y' = proj₁ (proj₂ (proj₂ (proj₂ [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂])))
+
+        y'∈F₂ : y' ∈ NA.accept na₂
+        y'∈F₂ = proj₂ (proj₂ (proj₂ (proj₂ [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂])))
+
         lem : (i : Fin (suc n)) → proj₁ (split w (≤-reflexive ≡refl)) i ≡ w i
         lem i = begin
             proj₁ (split w (≤-reflexive ≡refl)) i
@@ -1387,13 +1470,154 @@ StepMupto⇒FinalM⇒Stepupto M (aPreorder ∣Q∣ Qrefl Qtrans) Q-is-closed-und
             ≡⟨ ≡cong w (inject≤[i][n≤n]≡i i (≤-reflexive ≡refl)) ⟩
             w i
             ∎
-        [w↾sn≤sn,w']∈Q : ((suc n , (w ↾ ≤-reflexive ≡refl)) , (l , w')) ∈ ∣Q∣
+        [w↾sn≤sn,w']∈Q : ((suc n , (w ↾ ≤-reflexive ≡refl)) , [w']) ∈ ∣Q∣
         [w↾sn≤sn,w']∈Q = step-∋ ∣Q∣ [w,w']∈Q
             (begin
-            (suc n , w) , (l , w')
-            ≡⟨ ≡cong (λ a → (suc n , a) , (l , w')) (≡sym (ex lem)) ⟩
-            (suc n , proj₁ (split w (≤-reflexive ≡refl))) , (l , w')
+            (suc n , w) , [w']
+            ≡⟨ ≡cong (λ a → (suc n , a) , [w']) (≡sym (ex lem)) ⟩
+            (suc n , proj₁ (split w (≤-reflexive ≡refl))) , [w']
             ≡⟨⟩
-            (suc n , (w ↾ (s≤s (≤-reflexive ≡refl)))) , (l , w')
+            (suc n , (w ↾ (s≤s (≤-reflexive ≡refl)))) , [w']
             ∎)
--}  
+
+FinalM⇒Final :
+    (M : ℕ)
+    → (0<M : zero < M)
+    → (Q : Preorder)
+    → (R : Pred' (X₁ × X₂))
+    → (x : X₁) → (y : X₂)
+    → Final[ M ][ Q ] R x y
+    → Final[ Q ] R x y
+FinalM⇒Final M 0<M (aPreorder ∣Q∣ Qrefl Qtrans) R x y FinalM x∈F₁
+    {- ∃[ w' ] ∃[ y' ] ((zero , (λ ())) , w') ∈ ∣Q∣ × (w' ∈ FINWord-from[ y ]to[ y' ] na₂) × (y' ∈ NA.accept na₂) -}
+    with FinalM zero (λ i → x) (λ ()) ≡refl (λ ()) x∈F₁ 0<M
+FinalM⇒Final M 0<M (aPreorder ∣Q∣ Qrefl Qtrans) R x y FinalM x∈F₁
+    | w' , y' , [0length,w']∈Q , y⇝[w']y' , y'∈F₂ =
+    ( w' , y' , y⇝[w']y' , y'∈F₂ , [emptyF,w']∈Q )
+    where
+        [emptyF,w']∈Q : ((0 , emptyF) , w') ∈ ∣Q∣
+        [emptyF,w']∈Q = step-∋ ∣Q∣ [0length,w']∈Q
+            (begin
+            (zero , (λ ())) , w'
+            ≡⟨ ≡cong (λ a → (zero , a) , w') (ex λ ()) ⟩
+            (zero , emptyF) , w'
+            ∎)
+
+Mbounded-upto⇒unbounded-upto :
+    (M : ℕ)
+    → (0<M : zero < M)
+    → (Q Q₁ Q₂ : Preorder)
+    → [ Q , Q₁ , Q₂ ]-is-reasonable
+    → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+    → [ M ]-bounded-[ Q , R₁ , R₂ ]-constrained-simulation-upto
+    → [ Q , R₁ , R₂ ]-constrained-simulation-upto
+Mbounded-upto⇒unbounded-upto M 0<M Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] (QSimulationBase.aBoundedConstrainedSimulationUpto R FinalM StepMupto) =
+    QSimulationBase.aConstrainedSimulationUpto R Final StepUpto
+    where
+        Final : ∀ x y → (x , y) ∈ R → Final[ Q ] R x y
+        Final x y [x,y]∈R = FinalM⇒Final M 0<M Q R x y (FinalM x y [x,y]∈R)
+
+        StepUpto : ∀ x y → (x , y) ∈ R → StepUpto[ Q , R₁ , R₂ ] R x y
+        StepUpto x y [x,y]∈R = StepMupto⇒FinalM⇒Stepupto M Q Q₁ Q₂ Q-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] StepMupto FinalM x y [x,y]∈R
+
+EqCarrier : Pred' ((FINWord A) × (FINWord A))
+EqCarrier (w , w') = w ≡ w'
+EqRefl : ∀ (s : FINWord A) → EqCarrier (s , s)
+EqRefl w = ≡refl
+EqTrans : ∀ (s s' s'' : FINWord A)
+  → EqCarrier (s , s')
+  → EqCarrier (s' , s'')
+  → EqCarrier (s , s'')
+EqTrans w .w .w ≡refl ≡refl = ≡refl
+Eq : Preorder
+Eq = aPreorder EqCarrier EqRefl EqTrans
+
+EqR₁ : Pred' (X₁ × X₁)
+EqR₁ (x , x') = x ≡ x'
+
+EqR₂ : Pred' (X₂ × X₂)
+EqR₂ (y , y') = y ≡ y'
+
+EqR₁⊆[≤Q₁] : EqR₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Eq ] x')
+EqR₁⊆[≤Q₁] ≡refl (l , w) (xs , ≡refl , tr , last[xs]∈F₁) = ((l , w) , (xs , ≡refl , tr , last[xs]∈F₁) , ≡refl)
+
+EqR₂⊆[≤Q₂] : EqR₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Eq ] y')
+EqR₂⊆[≤Q₂] ≡refl (l , w) (ys , ≡refl , tr , last[ys]∈F₁) = ((l , w) , (ys , ≡refl , tr , last[ys]∈F₁) , ≡refl)
+
+M-bounded⇒M-bounded-upto :
+    (M : ℕ)
+    → (0<M : zero < M)
+    → (Q : Preorder)
+    → [ M ]-bounded-[ Q ]-constrained-simulation
+    → [ M ]-bounded-[ Q , EqR₁ , EqR₂ ]-constrained-simulation-upto
+M-bounded⇒M-bounded-upto M 0<M Q (QSimulationBase.aBoundedConstrainedSimulation R finalM stepM) =
+    QSimulationBase.aBoundedConstrainedSimulationUpto R finalM stepUpto
+    where
+        stepUpto : ∀ x y → R (x , y) → StepUpto[ M ][ Q , EqR₁ , EqR₂ ] R x y
+        stepUpto x y [x,y]∈R xs w x≡xs0 tr =
+            (k , k≢0 , k<sM , w' , y' , [w↾k,w']∈Q , y⇝[w']y' , [xₖ,y']∈R₁RR₂)
+            where
+                a = stepM x y [x,y]∈R xs w x≡xs0 tr
+
+                k : ℕ
+                k = proj₁ a
+
+                k≢0 : k ≢ 0
+                k≢0 = proj₁ (proj₂ a)
+
+                k<sM : k < suc M
+                k<sM = proj₁ (proj₂ (proj₂ a))
+
+                w' : FINWord A
+                w' = proj₁ (proj₂ (proj₂ (proj₂ a)))
+
+                y' : X₂
+                y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ a))))
+
+                [w↾k,w']∈Q : (inj k (w ↾ k<sM) , w') ∈ Preorder.carrier Q
+                [w↾k,w']∈Q = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a)))))
+
+                y⇝[w']y' : w' ∈ FINWord-from[ y ]to[ y' ] na₂
+                y⇝[w']y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a))))))
+
+                [xₖ,y']∈R : (xs (fromℕ< k<sM) , y') ∈ R
+                [xₖ,y']∈R = proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a))))))
+
+                [xₖ,y']∈R₁RR₂ : (xs (fromℕ< k<sM) , y') ∈ EqR₁ ∘ᵣ R ∘ᵣ EqR₂
+                [xₖ,y']∈R₁RR₂ = (y' , ((xs (fromℕ< k<sM) , (≡refl , [xₖ,y']∈R)) , ≡refl))
+
+Mbounded⇒unbounded :
+    (M : ℕ)
+    → (0<M : zero < M)
+    → (Q : Preorder)
+    → [ Q ]-is-closed-under-concat
+    → [ M ]-bounded-[ Q ]-constrained-simulation
+    → [ Q ]-constrained-simulation
+Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat M-bounded-Q-constrained-simulation = removeEqEq [Q,Eq,Eq]-constrained-simulation-upto
+    where
+        M-bounded-[Q,Eq,Eq]-constrained-simulation-upto = M-bounded⇒M-bounded-upto M 0<M Q M-bounded-Q-constrained-simulation
+
+        Q-is-reasonable : [ Q , Eq , Eq ]-is-reasonable
+        Q-is-reasonable = (Q-is-closed-under-concat , p , q)
+            where
+                p : (w w' : FINWord A) → (w , w') ∈ Preorder.carrier Eq → ∣ w' ∣ ≤ ∣ w ∣
+                p (l , w) .(l , w) ≡refl = ≤-reflexive ≡refl
+
+                q : EqCarrier ∘ᵣ (Preorder.carrier Q) ∘ᵣ EqCarrier ⊆ Preorder.carrier Q
+                q ((l , w) , ((l' , w') , ≡refl , [w,w']∈Q) , ≡refl) = [w,w']∈Q
+        
+        [Q,Eq,Eq]-constrained-simulation-upto = Mbounded-upto⇒unbounded-upto M 0<M Q Eq Eq Q-is-reasonable EqR₁ EqR₁⊆[≤Q₁] EqR₂ EqR₂⊆[≤Q₂] M-bounded-[Q,Eq,Eq]-constrained-simulation-upto
+
+        removeEqEq :
+            [ Q , EqR₁ , EqR₂ ]-constrained-simulation-upto
+            → [ Q ]-constrained-simulation
+        removeEqEq (aConstrainedSimulationUpto R final stepUpto) =
+            aConstrainedSimulation R final step
+            where
+                step : ∀ x y → R (x , y) → Step[ Q ] R x y
+                step x y [x,y]∈R n xs as x≡xs0 tr last[xs]∈F₁ with stepUpto x y [x,y]∈R n xs as x≡xs0 tr last[xs]∈F₁
+                step x y [x,y]∈R n xs as x≡xs0 tr last[xs]∈F₁ | k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₁ (.y' , (.(xs (fromℕ< sk≤ssn)) , ≡refl , ∈R) , ≡refl) =
+                    (k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₁ ∈R)
+                step x y [x,y]∈R n xs as x≡xs0 tr last[xs]∈F₁ | k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₂ a =
+                    (k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₂ a)
