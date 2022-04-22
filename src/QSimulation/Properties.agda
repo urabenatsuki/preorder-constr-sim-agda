@@ -27,7 +27,7 @@ open import QSimulation.Soundness public
 
 -- soundness of up-to version
 open import QSimulation.SoundnessUpto public
-  renaming (soundness to soundness-upto)
+  renaming (soundness to soundness-upto; soundness-of-bounded-simulation to soundness-of-bounded-simulation-upto)
 
 -- completeness
 open import QSimulation.Completeness public

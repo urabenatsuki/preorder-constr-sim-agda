@@ -138,6 +138,30 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- (xₖ R y') or (k ≡ suc n and y' ∈ F₂)
     ((xs (fromℕ< k<ssn) , y') ∈ R  ⊎  (k ≡ (suc n) × NA.accept na₂ y'))
   
+  StepUpto[_][_,_,_] : ℕ → Preorder → Pred' (X₁ × X₁) → Pred' (X₂ × X₂)
+    → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  StepUpto[ M ][ Q@(aPreorder ∣Q∣ Qrefl Qtrans) , R₁ , R₂ ] R x y =
+    -- for any xs ∈ X₁ᴹ and w ∈ Σᴹ,
+    (xs : FinWord (suc M) X₁) →
+    (w : FinWord M A) →
+    -- if x ≡ x₀ ⇝[a₀] x₁ ⇝[a₁] ⋯ ⇝[a_{M-1}] xM (where aᵢ = w i)
+    x ≡ xs zeroF →
+    ((i : Fin M) → NA.trans na₁ ((xs (inject₁ i)) , w i , xs (sucF i))) →
+    -- then
+    -- there exists a natural number k ∈ { 1, ⋯ , M }
+    ∃[ k ] -- k : ℕ
+    (k ≢ zero) × ∃ λ (k<sM : k < (suc M)) →
+    -- a word w' ∈ Σ*
+    ∃[ w' ] -- w' : FINWord A
+    -- and a state y' ∈ X₂ such that
+    ∃[ y' ] -- y' : X₂
+    -- a₀a₁⋯aₖ₋₁ Q w'
+    (inj k (w ↾ k<sM) ,  w') ∈ ∣Q∣ ×
+    -- y ⇝[w'] y'
+    w' ∈ FINWord-from[ y ]to[ y' ] na₂ ×
+    -- (xₖ R₁RR₂ y')
+    (xs (fromℕ< k<sM) , y') ∈ (R₁ ∘ᵣ R ∘ᵣ R₂)
+  
   StepUpto[_,_,_] : Preorder → Pred' (X₁ × X₁) → Pred' (X₂ × X₂)
     → Pred' (X₁ × X₂) → X₁ → X₂ → Set
   StepUpto[ Q@(aPreorder ∣Q∣ Qrefl Qtrans) , R₁ , R₂ ] R x y =
@@ -177,7 +201,16 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
       R : Pred' (X₁ × X₂)
       final : ∀ x y → R (x , y) → Final[ Q ] R x y
       step : ∀ x y → R (x , y) → Step[ Q ] R x y
-  
+
+  record [_]-bounded-[_,_,_]-constrained-simulation-upto
+    (M : ℕ) (Q : Preorder) (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂)) : Set₁
+    where
+    constructor aBoundedConstrainedSimulationUpto
+    field
+      R : Pred' (X₁ × X₂)
+      final : ∀ x y → R (x , y) → Final[ M ][ Q ] R x y
+      step : ∀ x y → R (x , y) → StepUpto[ M ][ Q , R₁ , R₂ ] R x y
+
   record [_,_,_]-constrained-simulation-upto
     (Q : Preorder) (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂)) : Set₁
     where

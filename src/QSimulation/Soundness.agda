@@ -428,7 +428,7 @@ soundness-of-bounded-simulation :
   (M : ℕ)
   → (0<M : zero < M)
   → (Q : Preorder)
-  → (Q-is-closed-under-concat : [ Q ]-is-closed-under-concat)
+  → [ Q ]-is-closed-under-concat
   → (Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) : [ M ]-bounded-[ Q ]-constrained-simulation)
   → ((x , y) : X₁ × X₂) → (x , y) ∈ R → x ≤[ na₁ , na₂ , Q ] y
 soundness-of-bounded-simulation M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) (x , y) [x,y]∈R =
