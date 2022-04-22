@@ -1034,11 +1034,11 @@ EqR₁ (x , x') = x ≡ x'
 EqR₂ : Pred' (X₂ × X₂)
 EqR₂ (y , y') = y ≡ y'
 
-EqR₁⊆[≤Q₁] : EqR₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Eq ] x')
-EqR₁⊆[≤Q₁] ≡refl (l , w) (xs , ≡refl , tr , last[xs]∈F₁) = ((l , w) , (xs , ≡refl , tr , last[xs]∈F₁) , ≡refl)
+EqR₁⊆[≤Eq] : EqR₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Eq ] x')
+EqR₁⊆[≤Eq] ≡refl (l , w) (xs , ≡refl , tr , last[xs]∈F₁) = ((l , w) , (xs , ≡refl , tr , last[xs]∈F₁) , ≡refl)
 
-EqR₂⊆[≤Q₂] : EqR₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Eq ] y')
-EqR₂⊆[≤Q₂] ≡refl (l , w) (ys , ≡refl , tr , last[ys]∈F₁) = ((l , w) , (ys , ≡refl , tr , last[ys]∈F₁) , ≡refl)
+EqR₂⊆[≤Eq] : EqR₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Eq ] y')
+EqR₂⊆[≤Eq] ≡refl (l , w) (ys , ≡refl , tr , last[ys]∈F₁) = ((l , w) , (ys , ≡refl , tr , last[ys]∈F₁) , ≡refl)
 
 M-bounded⇒M-bounded-upto :
     (M : ℕ)
@@ -1102,7 +1102,7 @@ Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat M-bounded-Q-constrained-si
                 q : EqCarrier ∘ᵣ (Preorder.carrier Q) ∘ᵣ EqCarrier ⊆ Preorder.carrier Q
                 q ((l , w) , ((l' , w') , ≡refl , [w,w']∈Q) , ≡refl) = [w,w']∈Q
         
-        [Q,Eq,Eq]-constrained-simulation-upto = Mbounded-upto⇒unbounded-upto M 0<M Q Eq Eq Q-is-reasonable EqR₁ EqR₁⊆[≤Q₁] EqR₂ EqR₂⊆[≤Q₂] M-bounded-[Q,Eq,Eq]-constrained-simulation-upto
+        [Q,Eq,Eq]-constrained-simulation-upto = Mbounded-upto⇒unbounded-upto M 0<M Q Eq Eq Q-is-reasonable EqR₁ EqR₁⊆[≤Eq] EqR₂ EqR₂⊆[≤Eq] M-bounded-[Q,Eq,Eq]-constrained-simulation-upto
 
         removeEqEq :
             [ Q , EqR₁ , EqR₂ ]-constrained-simulation-upto
