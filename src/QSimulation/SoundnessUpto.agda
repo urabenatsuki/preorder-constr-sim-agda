@@ -28,6 +28,8 @@ open import QSimulation.Base
 open QSimulation.Base.ConditionOnQ A
 open QSimulation.Base.QSimulationBase A X₁ X₂ na₁ na₂
 open import QSimulation.Lemma
+open import QSimulation.Bounded A X₁ X₂ na₁ na₂
+  using (Mbounded-upto⇒unbounded-upto)
 
 module Soundness
   (Q@(aPreorder ∣Q∣ Qrefl Qtrans) : Preorder)
@@ -495,4 +497,23 @@ module Soundness
       soundness' l  = <-rec (λ l → _) lemma-for-soundness l
 
 open Soundness using (soundness) public
- 
+
+soundness-of-bounded-simulation :
+  (M : ℕ)
+  → (0<M : zero < M)
+  → (Q Q₁ Q₂ : Preorder)
+  → [ Q , Q₁ , Q₂ ]-is-reasonable
+  → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+  → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+  → (Mbounded-[Q,R₁,R₂]-constrained-simulation-upto@(aBoundedConstrainedSimulationUpto R finalM stepM) : [ M ]-bounded-[ Q , R₁ , R₂ ]-constrained-simulation-upto)
+  → ((x , y) : X₁ × X₂) → (x , y) ∈ R → x ≤[ na₁ , na₂ , Q ] y
+soundness-of-bounded-simulation M 0<M
+  Q Q₁ Q₂ Q-is-reasonable
+  R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂]
+  Mbounded-Qconstrained-simulation-upto@(aBoundedConstrainedSimulationUpto R finalM stepM)
+  (x , y) [x,y]∈R =
+  soundness Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] unbounded-Qconstrained-simulation-upto (x , y) [x,y]∈R
+  where
+    unbounded-Qconstrained-simulation-upto : [ Q , R₁ , R₂ ]-constrained-simulation-upto
+    unbounded-Qconstrained-simulation-upto = Mbounded-upto⇒unbounded-upto M 0<M Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] Mbounded-Qconstrained-simulation-upto
+
