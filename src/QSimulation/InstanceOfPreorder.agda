@@ -49,6 +49,16 @@ module Eq (A : Set) where
   Eq-is-closed-under-concat : [ Eq ]-is-closed-under-concat
   Eq-is-closed-under-concat ((m , u) , .m , .u) ≡refl ((n , v) , .n , .v) ≡refl = ≡refl
 
+module UptoEq (A X : Set) (na : NA X A) where
+  {- up-to equality, R = (=) -}
+  EqR  : Pred' (X × X)
+  EqR (x , x') = x ≡ x'
+
+  open Eq A
+  EqR⊆[≤Eq] : EqR ⊆ (λ (x , x') → x ≤[ na , na ,  Eq ] x')
+  EqR⊆[≤Eq] ≡refl (l , w) (xs , ≡refl , tr , last[xs]∈F) = ((l , w) , (xs , ≡refl , tr , last[xs]∈F) , ≡refl)
+
+
 LanguageInclusion :
   {X₁ X₂ A : Set} →
   (na₁ : NA X₁ A) → (na₂ : NA X₂ A)

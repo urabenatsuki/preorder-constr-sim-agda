@@ -1015,30 +1015,10 @@ Mbounded-upto⇒unbounded-upto M 0<M Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[�
 {-
 -------- non up-to version --------
 -}
-
-EqCarrier : Pred' ((FINWord A) × (FINWord A))
-EqCarrier (w , w') = w ≡ w'
-EqRefl : ∀ (s : FINWord A) → EqCarrier (s , s)
-EqRefl w = ≡refl
-EqTrans : ∀ (s s' s'' : FINWord A)
-  → EqCarrier (s , s')
-  → EqCarrier (s' , s'')
-  → EqCarrier (s , s'')
-EqTrans w .w .w ≡refl ≡refl = ≡refl
-Eq : Preorder
-Eq = aPreorder EqCarrier EqRefl EqTrans
-
-EqR₁ : Pred' (X₁ × X₁)
-EqR₁ (x , x') = x ≡ x'
-
-EqR₂ : Pred' (X₂ × X₂)
-EqR₂ (y , y') = y ≡ y'
-
-EqR₁⊆[≤Eq] : EqR₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Eq ] x')
-EqR₁⊆[≤Eq] ≡refl (l , w) (xs , ≡refl , tr , last[xs]∈F₁) = ((l , w) , (xs , ≡refl , tr , last[xs]∈F₁) , ≡refl)
-
-EqR₂⊆[≤Eq] : EqR₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Eq ] y')
-EqR₂⊆[≤Eq] ≡refl (l , w) (ys , ≡refl , tr , last[ys]∈F₁) = ((l , w) , (ys , ≡refl , tr , last[ys]∈F₁) , ≡refl)
+import QSimulation.InstanceOfPreorder
+open QSimulation.InstanceOfPreorder.Eq A
+open QSimulation.InstanceOfPreorder.UptoEq A X₁ na₁ renaming (EqR to EqR₁; EqR⊆[≤Eq] to EqR₁⊆[≤Eq])
+open QSimulation.InstanceOfPreorder.UptoEq A X₂ na₂ renaming (EqR to EqR₂; EqR⊆[≤Eq] to EqR₂⊆[≤Eq])
 
 M-bounded⇒M-bounded-upto :
     (M : ℕ)
