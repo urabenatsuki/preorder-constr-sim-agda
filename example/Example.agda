@@ -35,6 +35,11 @@ module Fig-1-1 where
   open Addτ A
   
   module NA₁ where
+    {-
+    x₀ ─τ⟶ x₁ ─τ⟶ x₂
+                    ↺a
+    -}
+
     data X : Set where
       x₀ : X
       x₁ : X
@@ -61,6 +66,10 @@ module Fig-1-1 where
   open NA₁
 
   module NA₂ where
+    {-
+    y₀ ─────τ────⟶ y₂
+                    ↺a
+    -}
     data Y : Set where
       y₀ : Y
       y₂ : Y
@@ -235,6 +244,183 @@ module Fig-1-1 where
     x≤[≡τ]y : x₀ ≤[ na₁ , na₂ , ≡τ ] y₀
     x≤[≡τ]y = soundness-of-bounded-simulation 1 (s≤s z≤n) ≡τ ≡τ-is-closed-under-concat 1-bounded-≡τ-constrained-simulation (x₀ , y₀) tt
 
+  module 2Bounded where
+    R : Pred' (X × Y)
+    -- R = { (x₀ , y₀) , (x₂ , y₂) }
+    R (x₀ , y₀) = ⊤
+    R (x₀ , y₂) = ⊥
+    R (x₁ , y₀) = ⊥
+    R (x₁ , y₂) = ⊥
+    R (x₂ , y₀) = ⊥
+    R (x₂ , y₂) = ⊤
+
+    private
+      lem : {A B C : Set} {a a' : A} {b b' : B} {c c' : C}
+        → (p : a ≡ a')
+        → (p' : b ≡ b')
+        → (p'' : c ≡ c')
+        → (f : A × B × C → Set)
+        → f (a , b , c)
+        → f (a' , b' , c')
+      lem ≡refl ≡refl ≡refl f x = x
+
+      [τ] : FinWord 1 A+τ
+      [τ] zeroF = τ
+      
+      [a'] : FinWord 1 A+τ
+      [a'] zeroF = fromA a
+      
+      [a] : FinWord 1 A
+      [a] zeroF = a
+      
+      {-
+      wi≡a'→w≡[a'] : (w : FinWord 1 A+τ) → (∀ i → w i ≡ fromA a) → w ≡ [a']
+      wi≡a'→w≡[a'] w p = ex (λ {zeroF → p zeroF })
+      
+      remτ[a']≡[a] : remτ 1 [a'] ≡ inj 1 [a]
+      remτ[a']≡[a] with remτ 1 [a'] | inspect (remτ 1) [a']
+      remτ[a']≡[a] | .(suc (proj₁ (remτ 0 (tailF [a'])))) , .(a ∷ᶠ proj₂ (remτ 0 (tailF [a']))) | [ ≡refl ] =
+        begin
+        suc (proj₁ (remτ 0 (tailF [a']))) , (a ∷ᶠ proj₂ (remτ 0 (tailF [a'])))
+        ≡⟨ ≡cong (λ v → (_ , (a ∷ᶠ v))) (remτε≡ε (tailF [a'])) ⟩
+        suc (proj₁ (remτ 0 (tailF [a']))) , (a ∷ᶠ ε-word' A)
+        ≡⟨ ≡cong (λ v → (_ , v)) (ex (λ {zeroF → ≡refl})) ⟩
+        inj (suc (proj₁ (remτ 0 (tailF [a'])))) [a]
+        ≡⟨ path-lifting-property [a] (≡cong suc (∣remτε∣≡0 (tailF [a']))) ⟩
+        inj (suc zero) [a]
+        ∎
+
+      wi≡a'→remτw≡[a] : (w : FinWord 1 A+τ) → (∀ i → w i ≡ fromA a) → remτ 1 w ≡ inj 1 [a]
+      wi≡a'→remτw≡[a] w p = begin remτ 1 w ≡⟨ ≡cong (remτ 1) (wi≡a'→w≡[a'] w p) ⟩ remτ 1 [a'] ≡⟨ remτ[a']≡[a] ⟩ inj 1 [a] ∎
+      -}
+      
+      [ττ] : FinWord 2 A+τ
+      [ττ] zeroF = τ
+      [ττ] (sucF zeroF) = τ
+      
+      {-
+      remτ[ττ]≡ε : remτ 2 [ττ] ≡ inj 0 (ε-word' A)
+      remτ[ττ]≡ε with remτ 2 [ττ] | inspect (remτ 2) [ττ]
+      remτ[ττ]≡ε | n , e | [ p ] = ≡refl
+      -}
+
+      2≢0 : ¬ 2 ≡ 0
+      2≢0 = λ ()
+      
+      2<3 : 2 < 3
+      2<3 = s≤s (s≤s (s≤s z≤n))
+
+      1≢0 : ¬ 1 ≡ 0
+      1≢0 = λ ()
+      
+      1<3 : 1 < 3
+      1<3 = s≤s (s≤s z≤n)
+
+      {-
+      wi≡τ→remτw≡ε : (w : FinWord 2 A+τ) → (∀ i → w i ≡ τ) → remτ 2 (w ↾ 2<3) ≡ inj 0 (ε-word' A)
+      wi≡τ→remτw≡ε w p = begin
+        remτ 2 (w ↾ 2<3)
+        ≡⟨ ≡cong (remτ 2) (ex q) ⟩
+        remτ 2 w
+        ≡⟨ ≡cong (remτ 2) (ex (λ i → p i )) ⟩
+        remτ 2 [ττ]
+        ≡⟨ ≡refl ⟩
+        inj 0 (ε-word' A)
+        ∎
+        where
+          q : ∀ i → (w ↾ 2<3) i ≡ w i
+          q zeroF = ≡refl
+          q (sucF zeroF) = ≡refl
+      -}
+
+    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ ≡τ ] R x y
+    final x₀ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) with step-∋ acc₁ last[xs]∈F₁ (≡sym p)
+    final x₀ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) | ()
+    final x₁ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) with step-∋ acc₁ last[xs]∈F₁ (≡sym p)
+    final x₁ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) | ()
+    final x₂ y₂ tt .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) =  ((zero , emptyF) , y₂ , (λ i → ≡refl) , tr' , tt)
+      where
+        tr' : (zero , emptyF) ∈ FINWord-from[ y₂ ]to[ y₂ ] na₂
+        tr' = (λ y → y₂) , ≡refl , (λ ()) , ≡refl
+    final x₀ y₀ tt .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n)) with xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF
+    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] with lem (≡sym p) p'' p' tr₁ (tr zeroF)
+    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] | ()
+    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem (≡sym p) p'' p' tr₁ (tr zeroF)
+    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] | ()
+    final x₁ y₀ () .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n))
+    final x₁ y₂ () .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n))
+    final x₂ y₂ tt .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n)) with xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF
+    final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] =
+      (inj 1 [a'] , y₂ , (λ i → ≡refl) , ((λ {zeroF → y₂ ; (sucF zeroF) → y₂}) , ≡refl , ((λ {zeroF → tt}) , ≡refl )) , tt)
+    final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem (≡sym p) p'' p' tr₁ (tr zeroF)
+    final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] | ()
+
+    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ ≡τ ] R x y
+    step x₀ y₀ tt xs w p tr with xs zeroF | w zeroF | xs (sucF zeroF) | w (sucF zeroF) | xs (sucF (sucF zeroF)) | tr zeroF | tr (sucF zeroF)
+      | inspect xs zeroF | inspect w zeroF | inspect xs (sucF zeroF) | inspect w (sucF zeroF) | inspect xs (sucF (sucF zeroF))
+    step x₀ y₀ tt xs w p tr | x₀ | τ | x₁ | τ | x₂ | tt | tt | [ xs0 ] | [ w0 ] | [ xs1 ] | [ w1 ] | [ xs2 ] =
+      (2 , 2≢0 , 2<3 , inj 1 [τ] , y₂ , step-∋ ≡τ-carrier (λ ()) q , (ys , ≡refl , (λ {zeroF → tt}) , ≡refl ) , [last[xs],y₂]∈R)
+      {-
+      x₀ ──τ─⟶ x₁ ──τ─⟶ x₂
+      |R        ≡τ        |R
+      y₀ ────────τ─────⟶ y₂
+      -}
+      where
+        ys : FinWord 2 Y
+        ys = λ {zeroF → y₀ ; (sucF zeroF) → y₂}
+
+        last[xs]≡x₂ : xs (fromℕ< 2<3) ≡ x₂
+        last[xs]≡x₂ = begin xs (fromℕ< 2<3) ≡⟨ xs2 ⟩ x₂ ∎
+
+        [last[xs],y₂]∈R : (xs (fromℕ< 2<3) , y₂) ∈ R
+        [last[xs],y₂]∈R = step-∋ R tt (begin
+          (x₂ , y₂)
+          ≡⟨ ≡cong (λ x → (x , y₂)) (≡sym xs2) ⟩
+          (xs (sucF (sucF zeroF)) , y₂)
+          ≡⟨⟩
+          (xs (fromℕ< 2<3) , y₂)
+          ∎)
+
+        q : (inj 2 [ττ] , inj 1 [τ]) ≡ (inj 2 (w ↾ 2<3) , inj 1 [τ])
+        q = begin
+          (inj 2 [ττ] , inj 1 [τ])
+          ≡⟨ ≡cong (λ v → (inj 2 v , inj 1 [τ])) (ex (λ {zeroF → ≡sym w0 ; (sucF zeroF) → ≡sym w1})) ⟩
+          (inj 2 (w ↾ 2<3) , inj 1 [τ])
+          ∎
+    step x₂ y₂ tt xs w p tr with xs zeroF | w zeroF | xs (sucF zeroF) | w (sucF zeroF) | xs (sucF (sucF zeroF)) | tr zeroF | tr (sucF zeroF)
+      | inspect xs zeroF | inspect w zeroF | inspect xs (sucF zeroF) | inspect w (sucF zeroF) | inspect xs (sucF (sucF zeroF))
+    step x₂ y₂ tt xs w p tr | x₂ | fromA a | x₂ | fromA a | x₂ | tt | tt | [ xs0 ] | [ w0 ] | [ xs1 ] | [ w1 ] | [ xs2 ] =
+      (1 , 1≢0 , 1<3 , inj 1 [a'] , y₂ , step-∋ ≡τ-carrier (λ {zeroF → ≡refl}) q , (ys , ≡refl , (λ {zeroF → tt}) , ≡refl) , [last[xs^],y₂]∈R)
+      {-
+      x₂ ──a─⟶ x₂ ──a─⟶ x₂
+      |R   ≡τ   |R
+      y₂ ──a─⟶ y₂
+      -}
+      where
+        ys : FinWord 2 Y
+        ys = λ {zeroF → y₂ ; (sucF zeroF) → y₂}
+
+        last[xs^]≡x₂ : xs (fromℕ< 1<3) ≡ x₂
+        last[xs^]≡x₂ = begin xs (fromℕ< 1<3) ≡⟨ xs1 ⟩ x₂ ∎
+
+        [last[xs^],y₂]∈R : (xs (fromℕ< 1<3) , y₂) ∈ R
+        [last[xs^],y₂]∈R = step-∋ R tt (begin
+          (x₂ , y₂)
+          ≡⟨ ≡cong (λ x → (x , y₂)) (≡sym xs1) ⟩
+          (xs (sucF zeroF) , y₂)
+          ≡⟨⟩
+          (xs (fromℕ< 1<3) , y₂)
+          ∎)
+
+        q : (inj 1 [a'] , inj 1 [a']) ≡ (inj 1 (w ↾ 1<3) , inj 1 [a'])
+        q = begin
+          (inj 1 [a'] , inj 1 [a'])
+          ≡⟨ ≡cong (λ v → (inj 1 v , inj 1 [a'])) (ex (λ {zeroF → ≡sym w0})) ⟩
+          (inj 1 (w ↾ 1<3) , inj 1 [a'])
+          ∎
+
+    2-bounded-≡τ-constrained-simulation : [ 2 ]-bounded-[ ≡τ ]-constrained-simulation 
+    2-bounded-≡τ-constrained-simulation = aBoundedConstrainedSimulation R final step
 
 module Fig-1-2 where
   data A : Set where
@@ -536,3 +722,4 @@ module Fig-1-3 where
     open import QSimulation.Soundness X Y PA na₁ na₂
     x≤[⊆*]y : x₀ ≤[ na₁ , na₂ , ⊆* ] y₀
     x≤[⊆*]y = soundness-of-bounded-simulation 1 (s≤s z≤n) ⊆* ⊆*-is-closed-under-concat 1-bounded-⊆*-constrained-simulation (x₀ , y₀) tt
+     

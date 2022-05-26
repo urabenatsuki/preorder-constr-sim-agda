@@ -8,7 +8,7 @@ open import Data.Bool.Properties
   renaming (≤-trans to →ᵇ-trans)
 open import Data.Nat
 open import Data.Nat.Properties
-  using (≤-reflexive; ≤-trans; ≤-step; _≟_)
+  using (≤-reflexive; ≤-trans; ≤-step; _≟_; n≤0⇒n≡0)
 open import Data.Fin
   using (Fin; inject≤; fromℕ; fromℕ<; inject₁; cast; toℕ)
   renaming (zero to zeroF; suc to sucF; _<_ to _<ᶠ_)
@@ -107,6 +107,12 @@ module Remτ (A : Set) where
   ∣remτw∣≤∣w∣ (suc n) w with w zeroF
   ∣remτw∣≤∣w∣ (suc n) w | τ = ≤-step (∣remτw∣≤∣w∣ n (tailF w))
   ∣remτw∣≤∣w∣ (suc n) w | fromA a = s≤s (∣remτw∣≤∣w∣ n (tailF w))
+
+  ∣remτε∣≡0 : (w : FinWord 0 A+τ) → proj₁ (remτ 0 w) ≡ 0
+  ∣remτε∣≡0 w = n≤0⇒n≡0 (∣remτw∣≤∣w∣ 0 w)
+
+  remτε≡ε : (w : FinWord 0 A+τ) → proj₂ (remτ 0 w) ≡ ε-word' A
+  remτε≡ε w = ex (λ ())
   
   ≡τ-carrier : Pred' ((FINWord A+τ) × (FINWord A+τ))
   ≡τ-carrier ((m , u) , (n , v)) with remτ m u | remτ n v
