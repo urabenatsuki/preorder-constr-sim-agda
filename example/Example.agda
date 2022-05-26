@@ -422,6 +422,22 @@ module Fig-1-1 where
     2-bounded-≡τ-constrained-simulation : [ 2 ]-bounded-[ ≡τ ]-constrained-simulation 
     2-bounded-≡τ-constrained-simulation = aBoundedConstrainedSimulation R final step
 
+    -- R is not a 1-bounded ≡τ-constrained simulation
+    private
+      [x₀] : FinWord 1 X
+      [x₀] zeroF = x₀
+      [x₂] : FinWord 1 X
+      [x₂] zeroF = x₀
+      [x₀x₁] : FinWord 2 X
+      [x₀x₁] = λ { zeroF → x₀ ; (sucF zeroF) → x₁}
+    
+    ¬step1 : ¬ (∀ x y → (x , y) ∈ R → Step[ 1 ][ ≡τ ] R x y)
+    ¬step1 1-bounded-step with 1-bounded-step x₀ y₀ tt [x₀x₁] [τ] ≡refl (λ {zeroF → tt})
+    ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ with ¬k≡0 ≡refl
+    ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ | ()
+    ¬step1 1-bounded-step | .1 , ¬k≡0 , s≤s (s≤s z≤n) , _ , y₀ , _ , _ , [x₁,y₀]∈R = [x₁,y₀]∈R
+    ¬step1 1-bounded-step | .1 , ¬k≡0 , s≤s (s≤s z≤n) , _ , y₂ , _ , _ , [x₁,y₂]∈R = [x₁,y₂]∈R
+
 module Fig-1-2 where
   data A : Set where
     a : A
