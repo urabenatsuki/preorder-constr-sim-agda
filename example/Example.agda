@@ -28,6 +28,16 @@ open import QSimulation.Base
 open import QSimulation.Lemma using (casti≡i)
 open import QSimulation.InstanceOfPreorder
 
+private
+  lem-tr : {A B C : Set} {a a' : A} {b b' : B} {c c' : C}
+    → (p : a ≡ a')
+    → (p' : b ≡ b')
+    → (p'' : c ≡ c')
+    → (f : A × B × C → Set)
+    → f (a , b , c)
+    → f (a' , b' , c')
+  lem-tr ≡refl ≡refl ≡refl f x = x
+
 module Fig-1-1 where
   data A : Set where
     a : A
@@ -255,15 +265,6 @@ module Fig-1-1 where
     R (x₂ , y₂) = ⊤
 
     private
-      lem : {A B C : Set} {a a' : A} {b b' : B} {c c' : C}
-        → (p : a ≡ a')
-        → (p' : b ≡ b')
-        → (p'' : c ≡ c')
-        → (f : A × B × C → Set)
-        → f (a , b , c)
-        → f (a' , b' , c')
-      lem ≡refl ≡refl ≡refl f x = x
-
       [τ] : FinWord 1 A+τ
       [τ] zeroF = τ
       
@@ -343,16 +344,16 @@ module Fig-1-1 where
         tr' : (zero , emptyF) ∈ FINWord-from[ y₂ ]to[ y₂ ] na₂
         tr' = (λ y → y₂) , ≡refl , (λ ()) , ≡refl
     final x₀ y₀ tt .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n)) with xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF
-    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] with lem (≡sym p) p'' p' tr₁ (tr zeroF)
+    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] with lem-tr (≡sym p) p'' p' tr₁ (tr zeroF)
     final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] | ()
-    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem (≡sym p) p'' p' tr₁ (tr zeroF)
+    final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem-tr (≡sym p) p'' p' tr₁ (tr zeroF)
     final x₀ y₀ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] | ()
     final x₁ y₀ () .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n))
     final x₁ y₂ () .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n))
     final x₂ y₂ tt .1 xs w p tr last[xs]∈F₁ (s≤s (s≤s z≤n)) with xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF
     final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.fromA a | [ p'' ] =
       (inj 1 [a'] , y₂ , (λ i → ≡refl) , ((λ {zeroF → y₂ ; (sucF zeroF) → y₂}) , ≡refl , ((λ {zeroF → tt}) , ≡refl )) , tt)
-    final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem (≡sym p) p'' p' tr₁ (tr zeroF)
+    final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem-tr (≡sym p) p'' p' tr₁ (tr zeroF)
     final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] | ()
 
     step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ ≡τ ] R x y
@@ -739,3 +740,134 @@ module Fig-1-3 where
     x≤[⊆*]y : x₀ ≤[ na₁ , na₂ , ⊆* ] y₀
     x≤[⊆*]y = soundness-of-bounded-simulation 1 (s≤s z≤n) ⊆* ⊆*-is-closed-under-concat 1-bounded-⊆*-constrained-simulation (x₀ , y₀) tt
      
+  module 2-bounded where
+    R : Pred' (X × Y)
+    -- R = { (x₀ , y₀) , (x₂ , y₂) }
+    R (x₀ , y₀) = ⊤
+    R (x₀ , y₁) = ⊥
+    R (x₀ , y₂) = ⊥
+
+    R (x₁ , y₀) = ⊥
+    R (x₁ , y₁) = ⊥
+    R (x₁ , y₂) = ⊥
+
+    R (x₂ , y₀) = ⊥
+    R (x₂ , y₁) = ⊥
+    R (x₂ , y₂) = ⊤
+
+    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ ⊆* ] R x y
+    final x₀ y₀ tt zero xs w x₀≡xs0 tr xs0∈F₁ (s≤s z≤n) with step-∋ acc₁ xs0∈F₁ (≡sym x₀≡xs0)
+    final x₀ y₀ tt zero xs w x₀≡xs0 tr xs0∈F₁ (s≤s z≤n) | ()
+    final x₁ y₀ () zero xs w x₁≡xs0 tr xs0∈F₁ (s≤s z≤n)
+    final x₁ y₁ () zero xs w x₁≡xs0 tr xs0∈F₁ (s≤s z≤n)
+    final x₁ y₂ () zero xs w x₁≡xs0 tr xs0∈F₁ (s≤s z≤n)
+    final x₂ y₂ tt zero xs w x₂≡xs0 tr xs0∈F₁ (s≤s z≤n) =
+      ((0 , λ ()) , y₂ , (λ ()) , ((λ {zeroF → y₂}) , ≡refl , (λ ()) , ≡refl) , tt)
+    final x₀ y₀ tt (suc zero) xs w x₀≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) with xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF | tr zeroF
+    final x₀ y₀ tt (suc zero) xs w x₀≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) | x₂ | [ xs1≡ ] | w1 | [ w≡ ] | tr0 with lem-tr (≡sym x₀≡xs0) w≡ xs1≡ tr₁ (tr zeroF)
+    final x₀ y₀ tt (suc zero) xs w x₀≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) | x₂ | [ xs1≡ ] | w1 | [ w≡ ] | tr0 | ()
+    final x₁ y₀ () (suc zero) xs w x₁≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n))
+    final x₁ y₁ () (suc zero) xs w x₁≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n))
+    final x₁ y₂ () (suc zero) xs w x₁≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n))
+    final x₂ y₂ tt (suc zero) xs w x₂≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) with xs (sucF zeroF) | inspect xs (sucF zeroF) | tr zeroF
+    final x₂ y₂ tt (suc zero) xs w x₂≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) | x₂ | [ xs1≡ ] | tr0 with lem-tr (≡sym x₂≡xs0) ≡refl xs1≡ tr₁ (tr zeroF)
+    final x₂ y₂ tt (suc zero) xs w x₂≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) | x₂ | [ xs1≡ ] | tr0 | P with w zeroF a | inspect (w zeroF) a | w zeroF b | inspect (w zeroF) b
+    final x₂ y₂ tt (suc zero) xs w x₂≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) | x₂ | [ xs1≡ ] | tr0 | P | true | [ w0a≡true ] | false | [ w0b≡false ] =
+      ((1 , (λ {zeroF → [a,b]})) , y₂ , (λ {zeroF → w0⊆[a,b]} ) , ((λ {zeroF → y₂ ; (sucF zeroF) → y₂}) , ≡refl , (λ {zeroF → ≡refl}) , ≡refl) , tt )
+      where
+        w0⊆[a,b] : subset (w zeroF , [a,b])
+        w0⊆[a,b] a with w zeroF a
+        w0⊆[a,b] a | true = b→ᵇb
+        w0⊆[a,b] b with w zeroF b
+        w0⊆[a,b] b | false = f→ᵇt
+    final x y [x,y]∈R (suc (suc n)) xs w x≡xs0 tr last[xs]∈F₁ (s≤s (s≤s ()))
+    
+    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ ⊆* ] R x y
+    step x₀ y₀ tt xs w x₀≡xs0 tr with xs zeroF | xs (sucF zeroF) | xs (sucF (sucF zeroF)) | tr zeroF | tr (sucF zeroF)
+      | inspect xs zeroF | inspect xs (sucF zeroF) | inspect xs (sucF (sucF zeroF))
+    step x₀ y₀ tt xs w x₀≡xs0 tr | x₀ | x₁ | x₂ | tr0 | tr1 | [ xs0≡x₀ ] | [ xs1≡x₁ ] | [ xs2≡x₂ ] =
+      (2 , (λ ()) , (s≤s (s≤s (s≤s z≤n))) , (2 , w') , y₂ , (λ {zeroF → w0⊆[a,b] ; (sucF zeroF) → w1⊆[b]}) , (ys , ≡refl , tr' , ≡refl) , [xs2,y₂]∈R)
+      where
+        w' : FinWord 2 PA
+        w' zeroF = [a,b]
+        w' (sucF zeroF) = [b]
+
+        ys : FinWord 3 Y
+        ys zeroF = y₀
+        ys (sucF zeroF) = y₁
+        ys (sucF (sucF zeroF)) = y₂
+
+        w0⊆[a,b] : subset ((w ↾ s≤s (s≤s (s≤s z≤n))) zeroF , w' zeroF)
+        w0⊆[a,b] a with (w ↾ s≤s (s≤s (s≤s z≤n))) zeroF a
+        w0⊆[a,b] a | true = b→ᵇb
+        w0⊆[a,b] b with (w ↾ s≤s (s≤s (s≤s z≤n))) zeroF b
+        w0⊆[a,b] b | true = b→ᵇb
+        w0⊆[a,b] b | false = f→ᵇt
+
+        w1⊆[b] : subset ((w ↾ s≤s (s≤s (s≤s z≤n))) (sucF zeroF) , w' (sucF zeroF))
+        w1⊆[b] a with (w ↾ s≤s (s≤s (s≤s z≤n))) (sucF zeroF) a
+        w1⊆[b] a | false = b→ᵇb
+        w1⊆[b] b with (w ↾ s≤s (s≤s (s≤s z≤n))) (sucF zeroF) b
+        w1⊆[b] b | false = f→ᵇt
+        w1⊆[b] b | true = b→ᵇb
+
+        tr' : (i : Fin 2) → tr₂ (ys (inject₁ i) , w' i , ys (sucF i))
+        tr' zeroF = ≡refl
+        tr' (sucF zeroF) = ≡refl
+
+        [xs2,y₂]∈R : R (xs (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , y₂)
+        [xs2,y₂]∈R with xs (fromℕ< (s≤s (s≤s (s≤s z≤n))))
+        [xs2,y₂]∈R | x₂ = tt
+    step x₁ y₀ () xs w x₁≡xs0 tr
+    step x₁ y₁ () xs w x₁≡xs0 tr
+    step x₁ y₂ () xs w x₁≡xs0 tr
+    step x₂ y₂ tt xs w x₂≡xs0 tr with xs zeroF | xs (sucF zeroF) | xs (sucF (sucF zeroF)) | tr zeroF | tr (sucF zeroF)
+      | inspect xs zeroF | inspect xs (sucF zeroF) | inspect xs (sucF (sucF zeroF))
+    step x₂ y₂ tt xs w x₀≡xs0 tr | x₂ | x₂ | x₂ | tr0 | tr1 | [ xs0≡x₂ ] | [ xs1≡x₂ ] | [ xs2≡x₂ ] =
+      (2 , (λ ()) , (s≤s (s≤s (s≤s z≤n))) , (2 , w') , y₂ , (λ {zeroF → w0⊆[a,b] ; (sucF zeroF) → w1⊆[a,b]}) , (ys , ≡refl , tr' , ≡refl) , [xs2,y₂]∈R)
+      where
+        w' : FinWord 2 PA
+        w' zeroF = [a,b]
+        w' (sucF zeroF) = [a,b]
+
+        ys : FinWord 3 Y
+        ys zeroF = y₂
+        ys (sucF zeroF) = y₂
+        ys (sucF (sucF zeroF)) = y₂
+
+        w0⊆[a,b] : subset ((w ↾ s≤s (s≤s (s≤s z≤n))) zeroF , w' zeroF)
+        w0⊆[a,b] a with (w ↾ s≤s (s≤s (s≤s z≤n))) zeroF a
+        w0⊆[a,b] a | true = b→ᵇb
+        w0⊆[a,b] b with (w ↾ s≤s (s≤s (s≤s z≤n))) zeroF b
+        w0⊆[a,b] b | true = b→ᵇb
+        w0⊆[a,b] b | false = f→ᵇt
+
+        w1⊆[a,b] : subset ((w ↾ s≤s (s≤s (s≤s z≤n))) (sucF zeroF) , w' (sucF zeroF))
+        w1⊆[a,b] a with (w ↾ s≤s (s≤s (s≤s z≤n))) (sucF zeroF) a
+        w1⊆[a,b] a | true = b→ᵇb
+        w1⊆[a,b] b with (w ↾ s≤s (s≤s (s≤s z≤n))) (sucF zeroF) b
+        w1⊆[a,b] b | false = f→ᵇt
+        w1⊆[a,b] b | true = b→ᵇb
+
+        tr' : (i : Fin 2) → tr₂ (ys (inject₁ i) , w' i , ys (sucF i))
+        tr' zeroF = ≡refl
+        tr' (sucF zeroF) = ≡refl
+
+        [xs2,y₂]∈R : R (xs (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , y₂)
+        [xs2,y₂]∈R with xs (fromℕ< (s≤s (s≤s (s≤s z≤n))))
+        [xs2,y₂]∈R | x₂ = tt
+
+    2-bounded-≡τ-constrained-simulation : [ 2 ]-bounded-[ ⊆* ]-constrained-simulation 
+    2-bounded-≡τ-constrained-simulation = aBoundedConstrainedSimulation R final step
+
+    -- R is not a 1-bounded ≡τ-constrained simulation
+    private
+      [x₀x₁] : FinWord 2 X
+      [x₀x₁] = λ { zeroF → x₀ ; (sucF zeroF) → x₁}
+    
+    ¬step1 : ¬ (∀ x y → (x , y) ∈ R → Step[ 1 ][ ⊆* ] R x y)
+    ¬step1 1-bounded-step with 1-bounded-step x₀ y₀ tt [x₀x₁] (λ {zeroF → [a]}) ≡refl (λ {zeroF → ≡refl})
+    ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ with ¬k≡0 ≡refl
+    ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ | ()
+    ¬step1 1-bounded-step | .1 , ¬k≡0 , s≤s (s≤s z≤n) , _ , y₀ , _ , _ , [x₁,y₀]∈R = [x₁,y₀]∈R
+    ¬step1 1-bounded-step | .1 , ¬k≡0 , s≤s (s≤s z≤n) , _ , y₂ , _ , _ , [x₁,y₂]∈R = [x₁,y₂]∈R
