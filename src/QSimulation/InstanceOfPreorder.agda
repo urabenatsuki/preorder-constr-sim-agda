@@ -9,6 +9,12 @@ open import Data.Bool.Properties
 open import Data.Nat
 open import Data.Nat.Properties
   using (≤-reflexive; ≤-trans; ≤-step; _≟_; n≤0⇒n≡0)
+open import Data.Integer
+  using (ℤ; -[1+_]; 0ℤ)
+  renaming (+_ to +ᶻ_; _≤_ to _≤ᶻ_; _+_ to _+ᶻ_)
+open import Data.Integer.Properties
+  using ()
+  renaming (≤-reflexive to ≤ᶻ-reflexive; ≤-trans to ≤ᶻ-trans; +-identityˡ to +ᶻ-identityˡ; +-assoc to +ᶻ-assoc; +-mono-≤ to +ᶻ-mono-≤ᶻ)
 open import Data.Fin
   using (Fin; inject≤; fromℕ; fromℕ<; inject₁; cast; toℕ)
   renaming (zero to zeroF; suc to sucF; _<_ to _<ᶠ_)
@@ -404,3 +410,70 @@ module Subset (A : Set) where
   ⊆*-is-closed-under-concat ((m , u) , (m' , u')) u-u' ((n , v) , (n' , v')) v-v' =
     lemma-⊆*-is-closed-under-concat m n m' n' u v u' v' u-u' v-v'
  
+module Sum≥ where
+ 
+  sum : ∀ {n} → FinWord n ℤ → ℤ
+  sum {zero} s = 0ℤ
+  sum {suc n} s = s zeroF +ᶻ sum {n} (tailF s)
+
+  sum-concat : ∀ {m n} → (u : FinWord m ℤ) → (v : FinWord n ℤ) → sum (concat u v) ≡ sum u +ᶻ sum v
+  sum-concat {zero} {n} u v = begin
+    sum (concat u v)
+    ≡⟨⟩
+    sum v
+    ≡⟨ ≡sym (+ᶻ-identityˡ (sum v)) ⟩
+    0ℤ +ᶻ sum v
+    ≡⟨⟩
+    sum u +ᶻ sum v
+    ∎
+  sum-concat {suc m} {n} u v = begin
+    sum (concat u v)
+    ≡⟨⟩
+    u zeroF +ᶻ sum (concat (tailF u) v)
+    ≡⟨ ≡cong (λ n → u zeroF +ᶻ n) (sum-concat (tailF u) v) ⟩
+    u zeroF +ᶻ (sum (tailF u) +ᶻ sum v)
+    ≡⟨ ≡sym (+ᶻ-assoc (u zeroF) (sum (tailF u)) (sum v)) ⟩
+    u zeroF +ᶻ sum (tailF u) +ᶻ sum v
+    ≡⟨⟩
+    sum u +ᶻ sum v
+    ∎
+  
+  ≥+-carrier : Pred' ((FINWord ℤ) × (FINWord ℤ))
+  ≥+-carrier ((n , a) , (m , b)) = sum b ≤ᶻ sum a
+
+  ≥+-refl : ∀ (w : FINWord ℤ) → ≥+-carrier (w , w)
+  ≥+-refl (n , a) = ≤ᶻ-reflexive ≡refl
+
+  ≥+-trans : ∀ (w w' w'' : FINWord ℤ)
+    → ≥+-carrier (w , w')
+    → ≥+-carrier (w' , w'')
+    → ≥+-carrier (w , w'')
+  ≥+-trans (l , a) (m , b) (n , c) p q = ≤ᶻ-trans q p
+
+  ≥+ = aPreorder ≥+-carrier ≥+-refl ≥+-trans
+
+  lemma-≥+-is-closed-under-concat : ∀ m n m' n'
+    → (u  : FinWord m ℤ)
+    → (v : FinWord n ℤ)
+    → (u'  : FinWord m' ℤ)
+    → (v' : FinWord n' ℤ)
+    → (inj m u , inj m' u') ∈ ≥+-carrier
+    → (inj n v , inj n' v') ∈ ≥+-carrier
+    → (inj (m + n) (concat u v) , inj (m' + n') (concat u' v')) ∈ ≥+-carrier
+  lemma-≥+-is-closed-under-concat m n m' n' u v u' v' u-u' v-v' =
+    ≤ᶻ-trans (≤ᶻ-trans p a) q
+    where
+      a : sum u' +ᶻ sum v' ≤ᶻ sum u +ᶻ sum v
+      a = +ᶻ-mono-≤ᶻ u-u' v-v'
+      
+      p : sum (concat u' v') ≤ᶻ sum u' +ᶻ sum v'
+      p = ≤ᶻ-reflexive (sum-concat u' v')
+
+      q : sum u +ᶻ sum v ≤ᶻ sum (concat u v)
+      q = ≤ᶻ-reflexive (≡sym (sum-concat u v))
+
+  open ConditionOnQ ℤ
+  ≥+-is-closed-under-concat : [ ≥+ ]-is-closed-under-concat
+  ≥+-is-closed-under-concat ((m , u) , (m' , u')) u-u' ((n , v) , (n' , v')) v-v' =
+    lemma-≥+-is-closed-under-concat m n m' n' u v u' v' u-u' v-v'
+

@@ -274,36 +274,9 @@ module Fig-1-1 where
       [a] : FinWord 1 A
       [a] zeroF = a
       
-      {-
-      wi≡a'→w≡[a'] : (w : FinWord 1 A+τ) → (∀ i → w i ≡ fromA a) → w ≡ [a']
-      wi≡a'→w≡[a'] w p = ex (λ {zeroF → p zeroF })
-      
-      remτ[a']≡[a] : remτ 1 [a'] ≡ inj 1 [a]
-      remτ[a']≡[a] with remτ 1 [a'] | inspect (remτ 1) [a']
-      remτ[a']≡[a] | .(suc (proj₁ (remτ 0 (tailF [a'])))) , .(a ∷ᶠ proj₂ (remτ 0 (tailF [a']))) | [ ≡refl ] =
-        begin
-        suc (proj₁ (remτ 0 (tailF [a']))) , (a ∷ᶠ proj₂ (remτ 0 (tailF [a'])))
-        ≡⟨ ≡cong (λ v → (_ , (a ∷ᶠ v))) (remτε≡ε (tailF [a'])) ⟩
-        suc (proj₁ (remτ 0 (tailF [a']))) , (a ∷ᶠ ε-word' A)
-        ≡⟨ ≡cong (λ v → (_ , v)) (ex (λ {zeroF → ≡refl})) ⟩
-        inj (suc (proj₁ (remτ 0 (tailF [a'])))) [a]
-        ≡⟨ path-lifting-property [a] (≡cong suc (∣remτε∣≡0 (tailF [a']))) ⟩
-        inj (suc zero) [a]
-        ∎
-
-      wi≡a'→remτw≡[a] : (w : FinWord 1 A+τ) → (∀ i → w i ≡ fromA a) → remτ 1 w ≡ inj 1 [a]
-      wi≡a'→remτw≡[a] w p = begin remτ 1 w ≡⟨ ≡cong (remτ 1) (wi≡a'→w≡[a'] w p) ⟩ remτ 1 [a'] ≡⟨ remτ[a']≡[a] ⟩ inj 1 [a] ∎
-      -}
-      
       [ττ] : FinWord 2 A+τ
       [ττ] zeroF = τ
       [ττ] (sucF zeroF) = τ
-      
-      {-
-      remτ[ττ]≡ε : remτ 2 [ττ] ≡ inj 0 (ε-word' A)
-      remτ[ττ]≡ε with remτ 2 [ττ] | inspect (remτ 2) [ττ]
-      remτ[ττ]≡ε | n , e | [ p ] = ≡refl
-      -}
 
       2≢0 : ¬ 2 ≡ 0
       2≢0 = λ ()
@@ -316,23 +289,6 @@ module Fig-1-1 where
       
       1<3 : 1 < 3
       1<3 = s≤s (s≤s z≤n)
-
-      {-
-      wi≡τ→remτw≡ε : (w : FinWord 2 A+τ) → (∀ i → w i ≡ τ) → remτ 2 (w ↾ 2<3) ≡ inj 0 (ε-word' A)
-      wi≡τ→remτw≡ε w p = begin
-        remτ 2 (w ↾ 2<3)
-        ≡⟨ ≡cong (remτ 2) (ex q) ⟩
-        remτ 2 w
-        ≡⟨ ≡cong (remτ 2) (ex (λ i → p i )) ⟩
-        remτ 2 [ττ]
-        ≡⟨ ≡refl ⟩
-        inj 0 (ε-word' A)
-        ∎
-        where
-          q : ∀ i → (w ↾ 2<3) i ≡ w i
-          q zeroF = ≡refl
-          q (sucF zeroF) = ≡refl
-      -}
 
     final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ ≡τ ] R x y
     final x₀ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) with step-∋ acc₁ last[xs]∈F₁ (≡sym p)
@@ -871,3 +827,4 @@ module Fig-1-3 where
     ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ | ()
     ¬step1 1-bounded-step | .1 , ¬k≡0 , s≤s (s≤s z≤n) , _ , y₀ , _ , _ , [x₁,y₀]∈R = [x₁,y₀]∈R
     ¬step1 1-bounded-step | .1 , ¬k≡0 , s≤s (s≤s z≤n) , _ , y₂ , _ , _ , [x₁,y₂]∈R = [x₁,y₂]∈R
+
