@@ -58,6 +58,37 @@ M≤N⇒FinalN⇒FinalM
     n xs w ≡refl tr lastx∈F₁ n<M =
     finalN n xs w ≡refl tr lastx∈F₁ (≤-trans n<M M≤N)
 
+Final1⇒Final :
+    (Q : Preorder)
+    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → Final[ 1 ][ Q ] R x y
+    → Final[ Q ] R x y
+Final1⇒Final Q R x y final1 x∈F₁ with final1 0 (λ {0f → x}) (λ ()) ≡refl (λ ())  x∈F₁ (s≤s z≤n)
+Final1⇒Final Q R x y final1 x∈F₁ | w' , y' , εQw' , tr , y'∈F₂ =
+    (w' , y' , tr , y'∈F₂ , step-∋ (Preorder.carrier Q) εQw' (
+        begin
+        (zero , (λ ())) , w'
+        ≡⟨ ≡cong (λ w → ((zero , w) , w')) (ex λ ()) ⟩
+        (zero , emptyF) , w'
+        ∎
+    ))
+
+Final⇒Final1 :
+    (Q : Preorder)
+    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → Final[ Q ] R x y
+    → Final[ 1 ][ Q ] R x y
+Final⇒Final1 Q R .(xs zeroF) y final .zero xs w ≡refl tr xs0∈F₁ (s≤s z≤n) with final xs0∈F₁
+Final⇒Final1 Q R .(xs zeroF) y final .zero xs w ≡refl tr xs0∈F₁ (s≤s z≤n) | w' , y' , tr' , y'∈F₂ , εQw' =
+    (w' , y' ,
+        (step-∋ (Preorder.carrier Q) εQw' (
+            begin
+            (zero , emptyF) , w'
+            ≡⟨ ≡cong (λ w → ((zero , w) , w')) (ex λ ()) ⟩
+            (zero , w) , w'
+            ∎)) ,
+        tr' , y'∈F₂)
+
 M≤N⇒StepM⇒StepN :
     ∀ {M N : ℕ} → M ≤ N
     → (Q : Preorder)
