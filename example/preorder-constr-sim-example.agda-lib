@@ -1,0 +1,3 @@
+name: preorder-constr-sim-example
+depend: standard-library
+include: ../src/ .

@@ -32,5 +32,3 @@ open import QSimulation.SoundnessUpto public
 -- completeness
 open import QSimulation.Completeness public
   using (completeness)
-
-open import QSimulation.Example public

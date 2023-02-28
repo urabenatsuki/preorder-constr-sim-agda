@@ -1015,72 +1015,68 @@ Mbounded-upto⇒unbounded-upto M 0<M Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[�
 {-
 -------- non up-to version --------
 -}
+import QSimulation.InstanceOfPreorder
+open QSimulation.InstanceOfPreorder.Eq A
+open QSimulation.InstanceOfPreorder.UptoEq A X₁ na₁ renaming (EqR to EqR₁; EqR⊆[≤Eq] to EqR₁⊆[≤Eq])
+open QSimulation.InstanceOfPreorder.UptoEq A X₂ na₂ renaming (EqR to EqR₂; EqR⊆[≤Eq] to EqR₂⊆[≤Eq])
 
-EqCarrier : Pred' ((FINWord A) × (FINWord A))
-EqCarrier (w , w') = w ≡ w'
-EqRefl : ∀ (s : FINWord A) → EqCarrier (s , s)
-EqRefl w = ≡refl
-EqTrans : ∀ (s s' s'' : FINWord A)
-  → EqCarrier (s , s')
-  → EqCarrier (s' , s'')
-  → EqCarrier (s , s'')
-EqTrans w .w .w ≡refl ≡refl = ≡refl
-Eq : Preorder
-Eq = aPreorder EqCarrier EqRefl EqTrans
+stepM⇒stepMUptoEqEq :
+    (M : ℕ)
+    → (Q : Preorder)
+    → (R : Pred' (X₁ × X₂))
+    → (∀ x y → R (x , y) → Step[ M ][ Q ] R x y) 
+    → (∀ x y → R (x , y) → StepUpto[ M ][ Q , EqR₁ , EqR₂ ] R x y)
+stepM⇒stepMUptoEqEq M Q R stepM x y [x,y]∈R xs w x≡xs0 tr =
+    (k , k≢0 , k<sM , w' , y' , [w↾k,w']∈Q , y⇝[w']y' , [xₖ,y']∈R₁RR₂)
+    where
+        a = stepM x y [x,y]∈R xs w x≡xs0 tr
 
-EqR₁ : Pred' (X₁ × X₁)
-EqR₁ (x , x') = x ≡ x'
+        k : ℕ
+        k = proj₁ a
 
-EqR₂ : Pred' (X₂ × X₂)
-EqR₂ (y , y') = y ≡ y'
+        k≢0 : k ≢ 0
+        k≢0 = proj₁ (proj₂ a)
 
-EqR₁⊆[≤Eq] : EqR₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Eq ] x')
-EqR₁⊆[≤Eq] ≡refl (l , w) (xs , ≡refl , tr , last[xs]∈F₁) = ((l , w) , (xs , ≡refl , tr , last[xs]∈F₁) , ≡refl)
+        k<sM : k < suc M
+        k<sM = proj₁ (proj₂ (proj₂ a))
 
-EqR₂⊆[≤Eq] : EqR₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Eq ] y')
-EqR₂⊆[≤Eq] ≡refl (l , w) (ys , ≡refl , tr , last[ys]∈F₁) = ((l , w) , (ys , ≡refl , tr , last[ys]∈F₁) , ≡refl)
+        w' : FINWord A
+        w' = proj₁ (proj₂ (proj₂ (proj₂ a)))
+
+        y' : X₂
+        y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ a))))
+
+        [w↾k,w']∈Q : (inj k (w ↾ k<sM) , w') ∈ Preorder.carrier Q
+        [w↾k,w']∈Q = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a)))))
+
+        y⇝[w']y' : w' ∈ FINWord-from[ y ]to[ y' ] na₂
+        y⇝[w']y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a))))))
+
+        [xₖ,y']∈R : (xs (fromℕ< k<sM) , y') ∈ R
+        [xₖ,y']∈R = proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a))))))
+
+        [xₖ,y']∈R₁RR₂ : (xs (fromℕ< k<sM) , y') ∈ EqR₁ ∘ᵣ R ∘ᵣ EqR₂
+        [xₖ,y']∈R₁RR₂ = (y' , ((xs (fromℕ< k<sM) , (≡refl , [xₖ,y']∈R)) , ≡refl))
 
 M-bounded⇒M-bounded-upto :
     (M : ℕ)
-    → (0<M : zero < M)
     → (Q : Preorder)
     → [ M ]-bounded-[ Q ]-constrained-simulation
     → [ M ]-bounded-[ Q , EqR₁ , EqR₂ ]-constrained-simulation-upto
-M-bounded⇒M-bounded-upto M 0<M Q (QSimulationBase.aBoundedConstrainedSimulation R finalM stepM) =
-    QSimulationBase.aBoundedConstrainedSimulationUpto R finalM stepUpto
+M-bounded⇒M-bounded-upto M Q (QSimulationBase.aBoundedConstrainedSimulation R finalM stepM) =
+    QSimulationBase.aBoundedConstrainedSimulationUpto R finalM (stepM⇒stepMUptoEqEq M Q R stepM)
+
+[Q,Eq,Eq]-is-reasonable :
+    {Q : Preorder}
+    → [ Q ]-is-closed-under-concat
+    → [ Q , Eq , Eq ]-is-reasonable
+[Q,Eq,Eq]-is-reasonable {Q} Q-is-closed-under-concat = (Q-is-closed-under-concat , p , q)
     where
-        stepUpto : ∀ x y → R (x , y) → StepUpto[ M ][ Q , EqR₁ , EqR₂ ] R x y
-        stepUpto x y [x,y]∈R xs w x≡xs0 tr =
-            (k , k≢0 , k<sM , w' , y' , [w↾k,w']∈Q , y⇝[w']y' , [xₖ,y']∈R₁RR₂)
-            where
-                a = stepM x y [x,y]∈R xs w x≡xs0 tr
+        p : (w w' : FINWord A) → (w , w') ∈ Preorder.carrier Eq → ∣ w' ∣ ≤ ∣ w ∣
+        p (l , w) .(l , w) ≡refl = ≤-reflexive ≡refl
 
-                k : ℕ
-                k = proj₁ a
-
-                k≢0 : k ≢ 0
-                k≢0 = proj₁ (proj₂ a)
-
-                k<sM : k < suc M
-                k<sM = proj₁ (proj₂ (proj₂ a))
-
-                w' : FINWord A
-                w' = proj₁ (proj₂ (proj₂ (proj₂ a)))
-
-                y' : X₂
-                y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ a))))
-
-                [w↾k,w']∈Q : (inj k (w ↾ k<sM) , w') ∈ Preorder.carrier Q
-                [w↾k,w']∈Q = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a)))))
-
-                y⇝[w']y' : w' ∈ FINWord-from[ y ]to[ y' ] na₂
-                y⇝[w']y' = proj₁ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a))))))
-
-                [xₖ,y']∈R : (xs (fromℕ< k<sM) , y') ∈ R
-                [xₖ,y']∈R = proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ (proj₂ a))))))
-
-                [xₖ,y']∈R₁RR₂ : (xs (fromℕ< k<sM) , y') ∈ EqR₁ ∘ᵣ R ∘ᵣ EqR₂
-                [xₖ,y']∈R₁RR₂ = (y' , ((xs (fromℕ< k<sM) , (≡refl , [xₖ,y']∈R)) , ≡refl))
+        q : EqCarrier ∘ᵣ (Preorder.carrier Q) ∘ᵣ EqCarrier ⊆ Preorder.carrier Q
+        q ((l , w) , ((l' , w') , ≡refl , [w,w']∈Q) , ≡refl) = [w,w']∈Q
 
 Mbounded⇒unbounded :
     (M : ℕ)
@@ -1091,18 +1087,13 @@ Mbounded⇒unbounded :
     → [ Q ]-constrained-simulation
 Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat M-bounded-Q-constrained-simulation = removeEqEq [Q,Eq,Eq]-constrained-simulation-upto
     where
-        M-bounded-[Q,Eq,Eq]-constrained-simulation-upto = M-bounded⇒M-bounded-upto M 0<M Q M-bounded-Q-constrained-simulation
+        M-bounded-[Q,Eq,Eq]-constrained-simulation-upto = M-bounded⇒M-bounded-upto M Q M-bounded-Q-constrained-simulation
 
         Q-is-reasonable : [ Q , Eq , Eq ]-is-reasonable
-        Q-is-reasonable = (Q-is-closed-under-concat , p , q)
-            where
-                p : (w w' : FINWord A) → (w , w') ∈ Preorder.carrier Eq → ∣ w' ∣ ≤ ∣ w ∣
-                p (l , w) .(l , w) ≡refl = ≤-reflexive ≡refl
-
-                q : EqCarrier ∘ᵣ (Preorder.carrier Q) ∘ᵣ EqCarrier ⊆ Preorder.carrier Q
-                q ((l , w) , ((l' , w') , ≡refl , [w,w']∈Q) , ≡refl) = [w,w']∈Q
+        Q-is-reasonable = [Q,Eq,Eq]-is-reasonable {Q} Q-is-closed-under-concat
         
-        [Q,Eq,Eq]-constrained-simulation-upto = Mbounded-upto⇒unbounded-upto M 0<M Q Eq Eq Q-is-reasonable EqR₁ EqR₁⊆[≤Eq] EqR₂ EqR₂⊆[≤Eq] M-bounded-[Q,Eq,Eq]-constrained-simulation-upto
+        [Q,Eq,Eq]-constrained-simulation-upto =
+            Mbounded-upto⇒unbounded-upto M 0<M Q Eq Eq Q-is-reasonable EqR₁ EqR₁⊆[≤Eq] EqR₂ EqR₂⊆[≤Eq] M-bounded-[Q,Eq,Eq]-constrained-simulation-upto
 
         removeEqEq :
             [ Q , EqR₁ , EqR₂ ]-constrained-simulation-upto
@@ -1116,3 +1107,36 @@ Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat M-bounded-Q-constrained-si
                     (k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₁ ∈R)
                 step x y [x,y]∈R n xs as x≡xs0 tr last[xs]∈F₁ | k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₂ a =
                     (k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , inj₂ a)
+
+stepMuptoEqEq⇒stepM :
+    {M : ℕ}
+    → (Q : Preorder)
+    → (R : Pred' (X₁ × X₂))
+    → (∀ x y → R (x , y) → StepUpto[ M ][ Q , EqR₁ , EqR₂ ] R x y)
+    → (∀ x y → R (x , y) → Step[ M ][ Q ] R x y)
+stepMuptoEqEq⇒stepM {M} Q R stepMuptoEqEq = step
+    where
+    step : ∀ x y → R (x , y) → Step[ M ][ Q ] R x y
+    step x y [x,y]∈R xs as x≡xs0 tr with stepMuptoEqEq x y [x,y]∈R xs as x≡xs0 tr
+    step x y [x,y]∈R xs as x≡xs0 tr | k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , (.y' , (.(xs (fromℕ< sk≤ssn)) , ≡refl , ∈R) , ≡refl) =
+        (k , k≢0 , sk≤ssn , w' , y' , [as↾k,w']∈Q , t , ∈R)
+
+M≤N⇒Mbounded⇒Nbounded :
+    {M N : ℕ}
+    → M ≤ N
+    → (Q : Preorder)
+    → [ Q ]-is-closed-under-concat
+    → [ M ]-bounded-[ Q ]-constrained-simulation
+    → [ N ]-bounded-[ Q ]-constrained-simulation
+M≤N⇒Mbounded⇒Nbounded {M} {N} M≤N Q Q-is-closed-under-concat (QSimulationBase.aBoundedConstrainedSimulation R finalM stepM) =
+    QSimulationBase.aBoundedConstrainedSimulation R finalN stepN
+    where
+        finalN : (x : X₁) (y : X₂) → R (x , y) → Final[ N ][ Q ] R x y
+        finalN = M≤N⇒StepMupto⇒FinalM⇒FinalN
+            M≤N Q Eq Eq Q-is-reasonable R EqR₁ EqR₁⊆[≤Eq] EqR₂ EqR₂⊆[≤Eq] (stepM⇒stepMUptoEqEq M Q R stepM) finalM
+            where
+            Q-is-reasonable : [ Q , Eq , Eq ]-is-reasonable
+            Q-is-reasonable = [Q,Eq,Eq]-is-reasonable {Q} Q-is-closed-under-concat
+
+        stepN : (x : X₁) (y : X₂) → R (x , y) → Step[ N ][ Q ] R x y
+        stepN x y [x,y]∈R = M≤N⇒StepM⇒StepN M≤N Q R x y (stepM x y [x,y]∈R)
