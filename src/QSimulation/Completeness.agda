@@ -5,7 +5,7 @@ module QSimulation.Completeness
 
 open import Data.Nat
 open import Data.Fin
-  using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
+  using (Fin; inject₁; inject≤; fromℕ; toℕ; cast)
   renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; inspect; [_])

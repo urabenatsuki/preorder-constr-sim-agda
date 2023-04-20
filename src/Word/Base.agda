@@ -5,7 +5,7 @@ open import Level
 open import Data.Nat
   using (ℕ; zero; suc; _+_; _≤_; _<_; z≤n; s≤s)
 open import Data.Fin
-  using (Fin; inject₁; inject≤; inject+; cast; toℕ; fromℕ; fromℕ<)
+  using (Fin; inject₁; inject+; cast; toℕ; fromℕ; fromℕ<)
   renaming (zero to 0F; suc to sucF)
 open import Data.Product
   using (∃; _×_; _,_; proj₁; proj₂; Σ; Σ-syntax)

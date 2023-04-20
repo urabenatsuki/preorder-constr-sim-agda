@@ -1,9 +1,11 @@
 module FinForWord.Base where
 
 open import Data.Nat
-  using (ℕ; _+_; zero; suc; _≤_; ≤-pred)
+  using (ℕ; _+_; zero; suc; _≤_; _<_; ≤-pred)
+open import Data.Nat.Properties
+  using (m≤n⇒m≤1+n)
 open import Data.Fin
-  using (Fin;  inject₁; inject≤; inject+; cast; toℕ; fromℕ; fromℕ<)
+  using (Fin; inject₁; inject+; cast; toℕ; fromℕ)
   renaming (zero to zeroF; suc to sucF)
 open import Data.Product
   using (∃; _×_; _,_; proj₁; proj₂)
@@ -16,6 +18,19 @@ open Relation.Binary.PropositionalEquality.≡-Reasoning
 inject+' : ∀ {l} k → Fin l → Fin (k + l)
 inject+' {l} zero j = j
 inject+' {l} (suc k) j = sucF (inject+' k j)
+
+fromℕ< : ∀ {m n} → m < n → Fin n
+fromℕ< {zero} {suc n} m≤n = zeroF
+fromℕ< {suc m} {suc n} m≤n = sucF (fromℕ< (≤-pred m≤n))
+
+inject≤ : ∀ {m n} → Fin m → m ≤ n → Fin n
+inject≤ {_} {suc n} zeroF le = zeroF
+inject≤ {_} {suc n} (sucF i) le = sucF (inject≤ i (≤-pred le))
+
+inject≤-idempotent : ∀ {m n k} (i : Fin m) (m≤n : m ≤ n) (n≤k : n ≤ k) (m≤k : m ≤ k) →
+  inject≤ (inject≤ i m≤n) n≤k ≡ inject≤ i m≤k
+inject≤-idempotent {_} {suc n} {suc k} zeroF _ _ _ = refl
+inject≤-idempotent {_} {suc n} {suc k} (sucF i) m≤n n≤k _ = cong sucF (inject≤-idempotent i (≤-pred m≤n) (≤-pred n≤k) _)
 
 Prop[inject[k≡n∧k≤n]] : ∀ {k n : ℕ} → (i : Fin k) → k ≡ n → k ≤ n → Set
 Prop[inject[k≡n∧k≤n]] {n} {.n} i refl k≤n = inject≤ i k≤n ≡ i

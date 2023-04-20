@@ -4,7 +4,7 @@ module QSimulation.Base where
 open import Data.Nat
 open import Data.Nat.Properties using (≤-step)
 open import Data.Fin
-  using (Fin; inject₁; fromℕ; fromℕ< )
+  using (Fin; inject₁; fromℕ)
   renaming (zero to zeroF; suc to sucF)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_)
@@ -14,6 +14,7 @@ open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁)
 open import Data.Sum using (_⊎_)
 
 open import Base
+open import FinForWord
 open import Word
 
 -- Q-trace inclusion

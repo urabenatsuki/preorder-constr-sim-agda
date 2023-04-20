@@ -4,7 +4,7 @@ module QSimulation.Lemma where
 open import Data.Nat
 open import Data.Nat.Properties
 open import Data.Fin
-  using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
+  using (Fin; inject₁; fromℕ; toℕ; cast)
   renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
 open import Data.Fin.Properties
   using (toℕ-fromℕ)

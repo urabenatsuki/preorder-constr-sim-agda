@@ -7,14 +7,14 @@ module QSimulation.Bounded
 
 open import Data.Nat
 open import Data.Nat.Properties
-    using (≤-trans; ≤-step; <-trans; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
+    using (≤-trans; m≤n⇒m≤1+n; <-trans; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
 open import Data.Nat.Induction
     using (<-rec)
 open import Data.Fin
-    using (Fin; inject₁; inject≤; fromℕ; fromℕ<; toℕ; cast)
+    using (Fin; inject₁; fromℕ; toℕ; cast)
     renaming (zero to zeroF; suc to sucF; _+_ to _+F_)
 open import Data.Fin.Properties
-    using (inject≤-idempotent; toℕ-fromℕ)
+    using (toℕ-fromℕ)
 open import Relation.Binary.PropositionalEquality
     using (_≡_; _≢_; inspect; [_])
     renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
@@ -959,7 +959,7 @@ StepMupto⇒FinalM⇒Stepupto M Q@(aPreorder ∣Q∣ Qrefl Qtrans) Q₁ Q₂ QQ�
     | inj₂ (s≤s M≤sn) =
     (suc n ,  (λ ()) , ≤-reflexive ≡refl , [w'] , y' , [w↾sn≤sn,w']∈Q , y⇝[w']y' , inj₂ (≡refl , y'∈F₂))
     where
-        Final[ssn] = M≤N⇒StepMupto⇒FinalM⇒FinalN (≤-step M≤sn) Q Q₁ Q₂ QQ₁Q₂-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] StepMupto FinalM x y [x,y]∈R
+        Final[ssn] = M≤N⇒StepMupto⇒FinalM⇒FinalN (m≤n⇒m≤1+n M≤sn) Q Q₁ Q₂ QQ₁Q₂-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] StepMupto FinalM x y [x,y]∈R
         [w',y',[w,w']∈Q,y⇝[w']y',y'∈F₂] = Final[ssn] (suc n) xs w x≡xs0 tr-xs-w last[xs]∈F₁ (≤-reflexive ≡refl)
 
 
