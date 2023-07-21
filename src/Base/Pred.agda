@@ -3,6 +3,7 @@ module Base.Pred where
 open import Level
   using (Level)
   renaming (suc to lsuc)
+open import Data.Sum using (_⊎_)
 open import Relation.Unary
   using (Pred; _∈_)
 open import Relation.Binary.PropositionalEquality
@@ -14,6 +15,9 @@ open import Relation.Binary.PropositionalEquality
 
 Pred' : {ℓ : Level} -> (A : Set ℓ) -> Set (lsuc ℓ)
 Pred' {ℓ} A = Pred A ℓ
+
+_∪_ : {A : Set} -> (P Q : Pred' A) -> Pred' A
+P ∪ Q = λ x -> P x ⊎ Q x
 
 -- convenient syntax for equational reasoning
 -- cf. ≡-Reasoning in

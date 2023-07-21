@@ -1182,3 +1182,58 @@ M≤N⇒Mbounded⇒Nbounded {M} {N} {M>0} {N>0} M≤N Q Q-is-closed-under-concat
 
         stepN : (x : X₁) (y : X₂) → R (x , y) → Step[ N ][ N>0 ][ Q ] R x y
         stepN x y [x,y]∈R = M≤N⇒StepM⇒StepN {M} {N} {M>0} {N>0} M≤N Q R x y (stepM x y [x,y]∈R)
+
+
+{- ---- closed under union ---- -}
+M-bounded-Q-simulation-is-closed-under-union-final :
+    {M : ℕ}
+    {M>0 : M > 0}
+    → (Q : Preorder)
+    → (S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → (S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → ∀ x y → (R₁ ∪ R₂) (x , y) →  Final[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
+M-bounded-Q-simulation-is-closed-under-union-final {M} {M>0} Q
+    (QSimulationBase.aBoundedConstrainedSimulation R₁ final₁ step₁) (QSimulationBase.aBoundedConstrainedSimulation R₂ final₂ step₂)
+    x y (inj₁ [x,y]∈R₁) = final₁ x y [x,y]∈R₁
+M-bounded-Q-simulation-is-closed-under-union-final {M} {M>0} Q
+    S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂)
+    x y (inj₂ [x,y]∈R₂) = final₂ x y [x,y]∈R₂
+
+M-bounded-Q-simulation-is-closed-under-union-step :
+    {M : ℕ}
+    {M>0 : M > 0}
+    → (Q : Preorder)
+    → (S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → (S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → ∀ x y → (R₁ ∪ R₂) (x , y) →  Step[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
+M-bounded-Q-simulation-is-closed-under-union-step {M} {M>0} Q
+    (QSimulationBase.aBoundedConstrainedSimulation R₁ final₁ step₁) (QSimulationBase.aBoundedConstrainedSimulation R₂ final₂ step₂)
+    x y (inj₁ [x,y]∈R₁)
+    xs w x≡xs0 tr 
+    with step₁ x y [x,y]∈R₁ xs w x≡xs0 tr
+... | k , k>0 , sk≤sM , w' , y' , ([wk,w']∈Q , tr , rel) =
+    (k , k>0 , sk≤sM , w' , y' , ([wk,w']∈Q , tr , inj₁ rel))
+M-bounded-Q-simulation-is-closed-under-union-step {M} {M>0} Q
+    S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂)
+    x y (inj₂ [x,y]∈R₂)
+    xs w x≡xs0 tr 
+    with step₂ x y [x,y]∈R₂ xs w x≡xs0 tr
+... | k , k>0 , sk≤sM , w' , y' , ([wk,w']∈Q , tr , rel) =
+    (k , k>0 , sk≤sM , w' , y' , ([wk,w']∈Q , tr , inj₂ rel))
+
+M-bounded-Q-simulation-is-closed-under-union :
+    {M : ℕ}
+    {M>0 : M > 0}
+    → (Q : Preorder)
+    → (S₁ : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → (S₂ : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation
+M-bounded-Q-simulation-is-closed-under-union {M} {M>0} Q
+    S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) =
+    aBoundedConstrainedSimulation (R₁ ∪ R₂) final step
+    where
+        final : ∀ x y → (R₁ ∪ R₂) (x , y) → Final[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
+        final = M-bounded-Q-simulation-is-closed-under-union-final {M} {M>0} Q S₁ S₂
+
+        step : ∀ x y → (R₁ ∪ R₂) (x , y) → Step[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
+        step = M-bounded-Q-simulation-is-closed-under-union-step {M} {M>0} Q S₁ S₂
