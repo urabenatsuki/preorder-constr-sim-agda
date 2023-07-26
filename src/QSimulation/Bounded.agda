@@ -1254,7 +1254,22 @@ M-bounded-Q-simulation-is-closed-under-union {M} {M>0} Q
         step = M-bounded-Q-simulation-is-closed-under-union-step {M} {M>0} Q S₁ S₂
 
 {-- the (M,Q)-similarity is a (M,Q)-simulation --}
-M-Q-similarity : {M : ℕ} {M>0 : M > 0} → (Q : Preorder) → {ℓ : Level} → Pred' (X₁ × X₂) {lsuc ℓ}
-M-Q-similarity {M} {M>0} Q {ℓ} (x , y) =
+[M,Q]-similarity : {M : ℕ} {M>0 : M > 0} → (Q : Preorder) → {ℓ : Level} → Pred' (X₁ × X₂) {lsuc ℓ}
+[M,Q]-similarity {M} {M>0} Q {ℓ} (x , y) =
     Σ ([ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ) (λ { (aBoundedConstrainedSimulation R final step) → (x , y) ∈ R})
- 
+[M,Q]-similarity-is-[M,Q]-simulation : {M : ℕ} {M>0 : M > 0}
+    → (Q : Preorder)
+    → {ℓ : Level}
+    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation (lsuc ℓ)
+[M,Q]-similarity-is-[M,Q]-simulation {M} {M>0} Q {ℓ} =
+    aBoundedConstrainedSimulation similarity sim-final sim-step
+    where
+        similarity : Pred' (X₁ × X₂) {lsuc ℓ}
+        similarity = [M,Q]-similarity {M} {M>0} Q {ℓ}
+
+        sim-final : ∀ x y → similarity (x , y) → Final[ M ][ M>0 ][ Q ] similarity x y
+        sim-final x y (QSimulationBase.aBoundedConstrainedSimulation R final step , [x,y]∈R) = final x y [x,y]∈R
+
+        sim-step : ∀ x y → similarity (x , y) → Step[ M ][ M>0 ][ Q ] similarity x y
+        sim-step x y (simR@(QSimulationBase.aBoundedConstrainedSimulation R final step) , [x,y]∈R) xs w x≡xs0 tr with step x y [x,y]∈R xs w x≡xs0 tr
+        ... | k , k>0 , sk≤sM , w' , y' , ([wk,w']∈Q , tr , rel) = k , k>0 , sk≤sM , w' , y' , ([wk,w']∈Q , tr , (simR , rel))
