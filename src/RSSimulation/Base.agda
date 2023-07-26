@@ -8,6 +8,7 @@ open import Data.Sum
   using (_⊎_; inj₁; inj₂)
 open import Data.Empty
   using (⊥; ⊥-elim)
+open import Level using (Level)
 
 open import Base
 open import Word
@@ -20,8 +21,8 @@ open import Simulation.Base
 
 infixr  1 _⟨⊎⟩ʳ_
 
-_⟨⊎⟩ʳ_ : {A B C : Set}
-         -> Pred' (A × B) -> Pred' (A × C) -> Pred' (A × (B ⊎ C))
+_⟨⊎⟩ʳ_ : {A B C : Set} {ℓ : Level}
+         -> Pred' (A × B) {ℓ} -> Pred' (A × C) {ℓ} -> Pred' (A × (B ⊎ C)) {ℓ}
 (P ⟨⊎⟩ʳ Q) (a , inj₁ b) = P (a , b)
 (P ⟨⊎⟩ʳ Q) (a , inj₂ c) = Q (a , c)
 

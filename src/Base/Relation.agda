@@ -8,10 +8,10 @@ open import Level renaming (zero to lzero; suc to lsuc)
 open import Base.Pred using (Pred')
 
 module Rel where
-  Rel : (A B : Set) → Set₁
-  Rel A B = Pred' (A × B)
+  Rel : (A B : Set) {ℓ : Level} → Set (lsuc ℓ)
+  Rel A B {ℓ} = Pred' (A × B) {ℓ}
 
-  _∘ᵣ_ : {A B C : Set} → Rel A B → Rel B C → Rel A C
+  _∘ᵣ_ : {A B C : Set} {ℓ : Level} → Rel A B {ℓ} → Rel B C {ℓ} → Rel A C {ℓ}
   R ∘ᵣ S = λ (a , c) → ∃ (λ b → (a , b) ∈ R × (b , c) ∈ S)
 
   infixl 30 _∘ᵣ_

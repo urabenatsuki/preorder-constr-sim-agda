@@ -1,7 +1,7 @@
 open import NA.Base
 module QSimulation.Base where
 
-open import Data.Nat
+open import Data.Nat hiding (_⊔_)
 open import Data.Nat.Properties using (≤-step)
 open import Data.Fin
   using (Fin; inject₁; fromℕ)
@@ -12,6 +12,8 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Unary using (_∈_; _⊆_)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁)
 open import Data.Sum using (_⊎_)
+
+open import Level using (Level; _⊔_) renaming (suc to lsuc; zero to lzero)
 
 open import Base
 open import FinForWord
@@ -53,7 +55,7 @@ module ConditionOnQ (A : Set) where
 
 module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ A) where
     
-  Final[_][_][_] : (M : ℕ) → (M > 0) → Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  Final[_][_][_] : (M : ℕ) → (M > 0) → Preorder → {ℓ : Level} → Pred' (X₁ × X₂) {ℓ} → X₁ → X₂ → Set
   Final[ M ][ M>0 ][ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =
     -- for any n, xs ∈ X₁ⁿ⁺¹, and w ∈ Σⁿ,
     (n : ℕ) →
@@ -77,7 +79,7 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- y ⇝[w'] y' ∈ F₂
     (w' ∈ FINWord-from[ y ]to[ y' ] na₂) × (y' ∈ NA.accept na₂)
 
-  Step[_][_][_] : (M : ℕ) → (M > 0) → Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  Step[_][_][_] : (M : ℕ) → (M > 0) → Preorder → {ℓ : Level} → Pred' (X₁ × X₂) {ℓ} → X₁ → X₂ → Set ℓ
   Step[ M ][ M>0 ][ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =
     -- for any xs ∈ X₁ᴹ and w ∈ Σᴹ,
     (xs : FinWord (suc M) X₁) →
@@ -101,7 +103,7 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     (xs (fromℕ< k<sM) , y') ∈ R
 
   
-  Final[_] : Preorder → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  Final[_] : Preorder → {ℓ : Level} → Pred' (X₁ × X₂) {ℓ} → X₁ → X₂ → Set
   Final[ Q@(aPreorder ∣Q∣ Qrefl Qtrans) ] R x y =
     -- if x is accept state,
     x ∈ NA.accept na₁ →
@@ -139,8 +141,8 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- (xₖ R y') or (k ≡ suc n and y' ∈ F₂)
     ((xs (fromℕ< k<ssn) , y') ∈ R  ⊎  (k ≡ (suc n) × NA.accept na₂ y'))
   
-  StepUpto[_][_][_,_,_] : (M : ℕ) → (M > 0) → Preorder → Pred' (X₁ × X₁) → Pred' (X₂ × X₂)
-    → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  StepUpto[_][_][_,_,_] : (M : ℕ) → (M > 0) → Preorder → {ℓ : Level} → Pred' (X₁ × X₁) {ℓ} → Pred' (X₂ × X₂) {ℓ}
+    → Pred' (X₁ × X₂) {ℓ} → X₁ → X₂ → Set ℓ
   StepUpto[ M ][ M>0 ][ Q@(aPreorder ∣Q∣ Qrefl Qtrans) , R₁ , R₂ ] R x y =
     -- for any xs ∈ X₁ᴹ and w ∈ Σᴹ,
     (xs : FinWord (suc M) X₁) →
@@ -163,8 +165,8 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- (xₖ R₁RR₂ y')
     (xs (fromℕ< k<sM) , y') ∈ (R₁ ∘ᵣ R ∘ᵣ R₂)
   
-  StepUpto[_,_,_] : Preorder → Pred' (X₁ × X₁) → Pred' (X₂ × X₂)
-    → Pred' (X₁ × X₂) → X₁ → X₂ → Set
+  StepUpto[_,_,_] : Preorder → {ℓ : Level} → Pred' (X₁ × X₁) {ℓ} → Pred' (X₂ × X₂) {ℓ}
+    → Pred' (X₁ × X₂) {ℓ} → X₁ → X₂ → Set ℓ
   StepUpto[ Q@(aPreorder ∣Q∣ Qrefl Qtrans) , R₁ , R₂ ] R x y =
     (n : ℕ) →
     (xs : FinWord (suc (suc n)) X₁) →
@@ -189,13 +191,13 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
     -- (xₖ R₁RR₂ y') or (k ≡ suc n and y' ∈ F₂)
     ((xs (fromℕ< k<ssn) , y') ∈ (R₁ ∘ᵣ R ∘ᵣ R₂) ⊎  (k ≡ (suc n) × NA.accept na₂ y'))
   
-  record [_][_]-bounded-[_]-constrained-simulation (M : ℕ) (M>0 : M > 0) (Q : Preorder) : Set₁ where
+  record [_][_]-bounded-[_]-constrained-simulation (M : ℕ) (M>0 : M > 0) (Q : Preorder) (ℓ : Level) : Set (lsuc ℓ) where
     constructor aBoundedConstrainedSimulation
     field
-      R : Pred' (X₁ × X₂)
-      final : ∀ x y → R (x , y) → Final[ M ][ M>0 ][ Q ] R x y
-      step : ∀ x y → R (x , y) → Step[ M ][ M>0 ][ Q ] R x y
-  
+      R : Pred' (X₁ × X₂) {ℓ}
+      final : ∀ x y → R (x , y) → Final[ M ][ M>0 ][ Q ] {ℓ} R x y
+      step : ∀ x y → R (x , y) → Step[ M ][ M>0 ][ Q ] {ℓ} R x y
+
   record [_]-constrained-simulation (Q : Preorder) : Set₁ where
     constructor aConstrainedSimulation
     field
@@ -204,19 +206,19 @@ module QSimulationBase (A X₁ X₂ : Set) (na₁ : NA X₁ A) (na₂ : NA X₂ 
       step : ∀ x y → R (x , y) → Step[ Q ] R x y
 
   record [_][_]-bounded-[_,_,_]-constrained-simulation-upto
-    (M : ℕ) (M>0 : M > 0) (Q : Preorder) (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂)) : Set₁
+    (M : ℕ) (M>0 : M > 0) (Q : Preorder) {ℓ : Level} (R₁ : Pred' (X₁ × X₁) {ℓ}) (R₂ : Pred' (X₂ × X₂) {ℓ}) : Set (lsuc ℓ)
     where
     constructor aBoundedConstrainedSimulationUpto
     field
-      R : Pred' (X₁ × X₂)
+      R : Pred' (X₁ × X₂) {ℓ}
       final : ∀ x y → R (x , y) → Final[ M ][ M>0 ][ Q ] R x y
       step : ∀ x y → R (x , y) → StepUpto[ M ][ M>0 ][ Q , R₁ , R₂ ] R x y
 
   record [_,_,_]-constrained-simulation-upto
-    (Q : Preorder) (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂)) : Set₁
+    (Q : Preorder) {ℓ : Level} (R₁ : Pred' (X₁ × X₁) {ℓ}) (R₂ : Pred' (X₂ × X₂) {ℓ}) : Set (lsuc ℓ)
     where
     constructor aConstrainedSimulationUpto
     field
-      R : Pred' (X₁ × X₂)
+      R : Pred' (X₁ × X₂) {ℓ}
       final : ∀ x y → R (x , y) → Final[ Q ] R x y
       step : ∀ x y → R (x , y) → StepUpto[ Q , R₁ , R₂ ] R x y

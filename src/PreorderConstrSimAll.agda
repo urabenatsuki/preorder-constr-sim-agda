@@ -12,7 +12,7 @@ open import Word public
 -- definition of nondeterministic automata and its properties
 open import NA public
 
--- ordinal simulation
+-- ordinary simulation
 open import Simulation public
 
 -- reachability sensitive simulation

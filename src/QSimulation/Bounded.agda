@@ -20,8 +20,10 @@ open import Relation.Binary.PropositionalEquality
     renaming (refl to ≡refl; sym to ≡sym; cong to ≡cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Relation.Unary using (_∈_; _⊆_)
-open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
+open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂; Σ)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
+
+open import Level renaming (zero to lzero; suc to lsuc)
 
 open import Base
 open import FinForWord
@@ -53,7 +55,8 @@ M≤N⇒FinalN⇒FinalM :
     → {N>0 : N > 0}
     → M ≤ N
     → (Q : Preorder)
-    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ}) → (x : X₁) → (y : X₂)
     → Final[ N ][ N>0 ][ Q ] R x y
     → Final[ M ][ M>0 ][ Q ] R x y
 M≤N⇒FinalN⇒FinalM
@@ -63,7 +66,8 @@ M≤N⇒FinalN⇒FinalM
 
 Final1⇒Final :
     (Q : Preorder)
-    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ}) → (x : X₁) → (y : X₂)
     → Final[ 1 ][ s≤s z≤n ][ Q ] R x y
     → Final[ Q ] R x y
 Final1⇒Final Q R x y final1 x∈F₁ with final1 0 (λ {0f → x}) (λ ()) ≡refl (λ ())  x∈F₁ (s≤s z≤n)
@@ -78,7 +82,8 @@ Final1⇒Final Q R x y final1 x∈F₁ | w' , y' , εQw' , tr , y'∈F₂ =
 
 Final⇒Final1 :
     (Q : Preorder)
-    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ}) → (x : X₁) → (y : X₂)
     → Final[ Q ] R x y
     → Final[ 1 ][ s≤s z≤n ][ Q ] R x y
 Final⇒Final1 Q R .(xs zeroF) y final .zero xs w ≡refl tr xs0∈F₁ (s≤s z≤n) with final xs0∈F₁
@@ -98,7 +103,8 @@ M≤N⇒StepM⇒StepN :
     → {N>0 : N > 0}
     → M ≤ N
     → (Q : Preorder)
-    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ}) → (x : X₁) → (y : X₂)
     → Step[ M ][ M>0 ][ Q ] R x y
     → Step[ N ][ N>0 ][ Q ] R x y
 M≤N⇒StepM⇒StepN {M} {N} M≤N Q R .(xs zeroF) y StepM xs w ≡refl tr
@@ -212,8 +218,9 @@ M≤N⇒StepMupto⇒StepNupto :
     → {N>0 : N > 0}
     → M ≤ N
     → (Q : Preorder)
-    → (R₁ : Pred' (X₁ × X₁)) (R₂ : Pred' (X₂ × X₂))
-    → (R : Pred' (X₁ × X₂)) → (x : X₁) → (y : X₂)
+    → {ℓ : Level}
+    → (R₁ : Pred' (X₁ × X₁) {ℓ}) (R₂ : Pred' (X₂ × X₂) {ℓ})
+    → (R : Pred' (X₁ × X₂) {ℓ}) → (x : X₁) → (y : X₂)
     → StepUpto[ M ][ M>0 ][ Q , R₁ , R₂ ] R x y
     → StepUpto[ N ][ N>0 ][ Q , R₁ , R₂ ] R x y
 M≤N⇒StepMupto⇒StepNupto {M} {N} M≤N Q R₁ R₂ R .(xs zeroF) y StepMupto xs w ≡refl tr
@@ -324,9 +331,10 @@ module LemmaUpto
     (Q₁@(aPreorder ∣Q₁∣ _ _) : Preorder)
     (Q₂@(aPreorder ∣Q₂∣ _ _) : Preorder)
     (Q-is-reasonable@(Q-is-closed-under-concat , [w,w']∈Q₁→∣w'∣≤∣w∣ , Q₁QQ₂⊆Q) : [ Q , Q₁ , Q₂ ]-is-reasonable)
-    (R : Pred' (X₁ × X₂))
-    (R₁ : Pred' (X₁ × X₁)) (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
-    (R₂ : Pred' (X₂ × X₂)) (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+    {ℓ : Level}
+    (R : Pred' (X₁ × X₂) {ℓ})
+    (R₁ : Pred' (X₁ × X₁) {ℓ}) (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    (R₂ : Pred' (X₂ × X₂) {ℓ}) (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
     (StepMupto : ∀ x y → (x , y) ∈ R → StepUpto[ M ][ M>0 ][ Q , R₁ , R₂ ] R x y)
     (FinalM : ∀ x y → (x , y) ∈ R → Final[ M ][ M>0 ][ Q ] R x y)
     where
@@ -913,9 +921,10 @@ M≤N⇒StepMupto⇒FinalM⇒FinalN :
     ∀ {M N : ℕ} {M>0 : M > 0} {N>0 : N > 0} → M ≤ N
     → (Q Q₁ Q₂ : Preorder)
     → [ Q , Q₁ , Q₂ ]-is-reasonable
-    → (R : Pred' (X₁ × X₂))
-    → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
-    → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ})
+    → (R₁ : Pred' (X₁ × X₁) {ℓ}) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    → (R₂ : Pred' (X₂ × X₂) {ℓ}) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
     → (∀ x y → (x , y) ∈ R → StepUpto[ M ][ M>0 ][ Q , R₁ , R₂ ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ M ][ M>0 ][ Q ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ N ][ N>0 ][ Q ] R x y)
@@ -926,9 +935,10 @@ StepMupto⇒FinalM⇒Stepupto :
     (M : ℕ) {M>0 : M > 0}
     → (Q Q₁ Q₂ : Preorder)
     → [ Q , Q₁ , Q₂ ]-is-reasonable
-    → (R : Pred' (X₁ × X₂))
-    → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
-    → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ})
+    → (R₁ : Pred' (X₁ × X₁) {ℓ}) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    → (R₂ : Pred' (X₂ × X₂) {ℓ}) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
     → (∀ x y → (x , y) ∈ R → StepUpto[ M ][ M>0 ][ Q , R₁ , R₂ ] R x y)
     → (∀ x y → (x , y) ∈ R → Final[ M ][ M>0 ][ Q ] R x y)
     → (∀ x y → (x , y) ∈ R → StepUpto[ Q , R₁ , R₂ ] R x y)
@@ -1014,7 +1024,8 @@ FinalM⇒Final :
     (M : ℕ)
     → {M>0 : M > 0}
     → (Q : Preorder)
-    → (R : Pred' (X₁ × X₂))
+    → {ℓ : Level}
+    → (R : Pred' (X₁ × X₂) {ℓ})
     → (x : X₁) → (y : X₂)
     → Final[ M ][ M>0 ][ Q ] R x y
     → Final[ Q ] R x y
@@ -1038,8 +1049,9 @@ Mbounded-upto⇒unbounded-upto :
     → (M>0 : M > 0)
     → (Q Q₁ Q₂ : Preorder)
     → [ Q , Q₁ , Q₂ ]-is-reasonable
-    → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
-    → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+    → {ℓ : Level}
+    → (R₁ : Pred' (X₁ × X₁) {ℓ}) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+    → (R₂ : Pred' (X₂ × X₂) {ℓ}) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
     → [ M ][ M>0 ]-bounded-[ Q , R₁ , R₂ ]-constrained-simulation-upto
     → [ Q , R₁ , R₂ ]-constrained-simulation-upto
 Mbounded-upto⇒unbounded-upto M M>0 Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] (QSimulationBase.aBoundedConstrainedSimulationUpto R FinalM StepMupto) =
@@ -1050,7 +1062,6 @@ Mbounded-upto⇒unbounded-upto M M>0 Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[�
 
         StepUpto : ∀ x y → (x , y) ∈ R → StepUpto[ Q , R₁ , R₂ ] R x y
         StepUpto x y [x,y]∈R = StepMupto⇒FinalM⇒Stepupto M {M>0} Q Q₁ Q₂ Q-is-reasonable R R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] StepMupto FinalM x y [x,y]∈R
-
 
 {-
 -------- non up-to version --------
@@ -1098,10 +1109,11 @@ stepM⇒stepMUptoEqEq M Q R stepM x y [x,y]∈R xs w x≡xs0 tr =
         [xₖ,y']∈R₁RR₂ : (xs (fromℕ< k<sM) , y') ∈ EqR₁ ∘ᵣ R ∘ᵣ EqR₂
         [xₖ,y']∈R₁RR₂ = (y' , ((xs (fromℕ< k<sM) , (≡refl , [xₖ,y']∈R)) , ≡refl))
 
+
 M-bounded⇒M-bounded-upto :
     (M : ℕ) {M>0 : M > 0}
     → (Q : Preorder)
-    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation
+    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation lzero
     → [ M ][ M>0 ]-bounded-[ Q , EqR₁ , EqR₂ ]-constrained-simulation-upto
 M-bounded⇒M-bounded-upto M {M>0} Q (QSimulationBase.aBoundedConstrainedSimulation R finalM stepM) =
     QSimulationBase.aBoundedConstrainedSimulationUpto R finalM (stepM⇒stepMUptoEqEq M {M>0} Q R stepM)
@@ -1123,7 +1135,7 @@ Mbounded⇒unbounded :
     → {M>0 : M > 0}
     → (Q : Preorder)
     → [ Q ]-is-closed-under-concat
-    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation
+    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation lzero
     → [ Q ]-constrained-simulation
 Mbounded⇒unbounded M {M>0} Q Q-is-closed-under-concat M-bounded-Q-constrained-simulation = removeEqEq [Q,Eq,Eq]-constrained-simulation-upto
     where
@@ -1168,8 +1180,8 @@ M≤N⇒Mbounded⇒Nbounded :
     → M ≤ N
     → (Q : Preorder)
     → [ Q ]-is-closed-under-concat
-    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation
-    → [ N ][ N>0 ]-bounded-[ Q ]-constrained-simulation
+    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation lzero
+    → [ N ][ N>0 ]-bounded-[ Q ]-constrained-simulation lzero
 M≤N⇒Mbounded⇒Nbounded {M} {N} {M>0} {N>0} M≤N Q Q-is-closed-under-concat (QSimulationBase.aBoundedConstrainedSimulation R finalM stepM) =
     QSimulationBase.aBoundedConstrainedSimulation R finalN stepN
     where
@@ -1189,8 +1201,9 @@ M-bounded-Q-simulation-is-closed-under-union-final :
     {M : ℕ}
     {M>0 : M > 0}
     → (Q : Preorder)
-    → (S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
-    → (S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → {ℓ : Level}
+    → (S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ)
+    → (S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ)
     → ∀ x y → (R₁ ∪ R₂) (x , y) →  Final[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
 M-bounded-Q-simulation-is-closed-under-union-final {M} {M>0} Q
     (QSimulationBase.aBoundedConstrainedSimulation R₁ final₁ step₁) (QSimulationBase.aBoundedConstrainedSimulation R₂ final₂ step₂)
@@ -1203,8 +1216,9 @@ M-bounded-Q-simulation-is-closed-under-union-step :
     {M : ℕ}
     {M>0 : M > 0}
     → (Q : Preorder)
-    → (S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
-    → (S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
+    → {ℓ : Level}
+    → (S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ)
+    → (S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ)
     → ∀ x y → (R₁ ∪ R₂) (x , y) →  Step[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
 M-bounded-Q-simulation-is-closed-under-union-step {M} {M>0} Q
     (QSimulationBase.aBoundedConstrainedSimulation R₁ final₁ step₁) (QSimulationBase.aBoundedConstrainedSimulation R₂ final₂ step₂)
@@ -1225,9 +1239,10 @@ M-bounded-Q-simulation-is-closed-under-union :
     {M : ℕ}
     {M>0 : M > 0}
     → (Q : Preorder)
-    → (S₁ : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
-    → (S₂ : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation)
-    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation
+    → {ℓ : Level}
+    → (S₁ : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ)
+    → (S₂ : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ)
+    → [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ
 M-bounded-Q-simulation-is-closed-under-union {M} {M>0} Q
     S₁@(aBoundedConstrainedSimulation R₁ final₁ step₁) S₂@(aBoundedConstrainedSimulation R₂ final₂ step₂) =
     aBoundedConstrainedSimulation (R₁ ∪ R₂) final step
@@ -1237,3 +1252,9 @@ M-bounded-Q-simulation-is-closed-under-union {M} {M>0} Q
 
         step : ∀ x y → (R₁ ∪ R₂) (x , y) → Step[ M ][ M>0 ][ Q ] (R₁ ∪ R₂) x y
         step = M-bounded-Q-simulation-is-closed-under-union-step {M} {M>0} Q S₁ S₂
+
+{-- the (M,Q)-similarity is a (M,Q)-simulation --}
+M-Q-similarity : {M : ℕ} {M>0 : M > 0} → (Q : Preorder) → {ℓ : Level} → Pred' (X₁ × X₂) {lsuc ℓ}
+M-Q-similarity {M} {M>0} Q {ℓ} (x , y) =
+    Σ ([ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation ℓ) (λ { (aBoundedConstrainedSimulation R final step) → (x , y) ∈ R})
+ 

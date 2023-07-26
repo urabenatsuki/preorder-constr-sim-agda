@@ -21,6 +21,8 @@ open import Relation.Unary using (_∈_; _⊆_)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 
+open import Level using (Level) renaming (zero to lzero)
+
 open import Base
 open import FinForWord
 open import Word
@@ -36,8 +38,8 @@ module Soundness
   (Q₁@(aPreorder ∣Q₁∣ _ _) : Preorder)
   (Q₂@(aPreorder ∣Q₂∣ _ _) : Preorder)
   (Q-is-reasonable@(Q-is-closed-under-concat , [w,w']∈Q₁→∣w'∣≤∣w∣ , Q₁QQ₂⊆Q) : [ Q , Q₁ , Q₂ ]-is-reasonable)
-  (R₁ : Pred' (X₁ × X₁)) (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
-  (R₂ : Pred' (X₂ × X₂)) (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+  (R₁ : Pred' (X₁ × X₁) {lzero}) (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+  (R₂ : Pred' (X₂ × X₂) {lzero}) (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
   (R@(aConstrainedSimulationUpto ∣R∣ Rfinal Rstep) : [ Q , R₁ , R₂ ]-constrained-simulation-upto)
   where
 
@@ -500,14 +502,14 @@ open Soundness using (soundness) public
 
 soundness-of-bounded-simulation :
   (M : ℕ)
-  → (0<M : zero < M)
+  → (M>0 : M > 0)
   → (Q Q₁ Q₂ : Preorder)
   → [ Q , Q₁ , Q₂ ]-is-reasonable
-  → (R₁ : Pred' (X₁ × X₁)) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
-  → (R₂ : Pred' (X₂ × X₂)) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
-  → (Mbounded-[Q,R₁,R₂]-constrained-simulation-upto@(aBoundedConstrainedSimulationUpto R finalM stepM) : [ M ]-bounded-[ Q , R₁ , R₂ ]-constrained-simulation-upto)
+  → (R₁ : Pred' (X₁ × X₁) {lzero}) → (R₁⊆[≤Q₁] : R₁ ⊆ (λ (x , x') → x ≤[ na₁ , na₁ ,  Q₁ ] x'))
+  → (R₂ : Pred' (X₂ × X₂) {lzero}) → (R₂⊆[≤Q₂] : R₂ ⊆ (λ (y , y') → y ≤[ na₂ , na₂ ,  Q₂ ] y'))
+  → (Mbounded-[Q,R₁,R₂]-constrained-simulation-upto@(aBoundedConstrainedSimulationUpto R finalM stepM) : [ M ][ M>0 ]-bounded-[ Q , R₁ , R₂ ]-constrained-simulation-upto)
   → ((x , y) : X₁ × X₂) → (x , y) ∈ R → x ≤[ na₁ , na₂ , Q ] y
-soundness-of-bounded-simulation M 0<M
+soundness-of-bounded-simulation M M>0
   Q Q₁ Q₂ Q-is-reasonable
   R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂]
   Mbounded-Qconstrained-simulation-upto@(aBoundedConstrainedSimulationUpto R finalM stepM)
@@ -515,5 +517,5 @@ soundness-of-bounded-simulation M 0<M
   soundness Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] unbounded-Qconstrained-simulation-upto (x , y) [x,y]∈R
   where
     unbounded-Qconstrained-simulation-upto : [ Q , R₁ , R₂ ]-constrained-simulation-upto
-    unbounded-Qconstrained-simulation-upto = Mbounded-upto⇒unbounded-upto M 0<M Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] Mbounded-Qconstrained-simulation-upto
+    unbounded-Qconstrained-simulation-upto = Mbounded-upto⇒unbounded-upto M M>0 Q Q₁ Q₂ Q-is-reasonable R₁ R₁⊆[≤Q₁] R₂ R₂⊆[≤Q₂] Mbounded-Qconstrained-simulation-upto
 

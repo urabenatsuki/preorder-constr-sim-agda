@@ -20,6 +20,7 @@ open import Relation.Unary using (_∈_; _⊆_)
 open import Data.Product using (_×_; _,_; ∃; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Relation.Nullary.Negation using (contradiction)
+open import Level using (Level) renaming (zero to lzero)
 
 open import Base
 open import FinForWord
@@ -426,13 +427,13 @@ open Soundness using (soundness) public
 
 soundness-of-bounded-simulation :
   (M : ℕ)
-  → (0<M : zero < M)
+  → (M>0 : M > zero)
   → (Q : Preorder)
   → [ Q ]-is-closed-under-concat
-  → (Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) : [ M ]-bounded-[ Q ]-constrained-simulation)
+  → (Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) : [ M ][ M>0 ]-bounded-[ Q ]-constrained-simulation lzero)
   → ((x , y) : X₁ × X₂) → (x , y) ∈ R → x ≤[ na₁ , na₂ , Q ] y
-soundness-of-bounded-simulation M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) (x , y) [x,y]∈R =
+soundness-of-bounded-simulation M M>0 Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation@(aBoundedConstrainedSimulation R FinalM StepM) (x , y) [x,y]∈R =
   soundness Q Q-is-closed-under-concat unbounded-Qconstrained-simulation (x , y) [x,y]∈R
   where
     unbounded-Qconstrained-simulation : [ Q ]-constrained-simulation
-    unbounded-Qconstrained-simulation = Mbounded⇒unbounded M 0<M Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation
+    unbounded-Qconstrained-simulation = Mbounded⇒unbounded M {M>0} Q Q-is-closed-under-concat Mbounded-Qconstrained-simulation

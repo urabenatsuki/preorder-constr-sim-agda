@@ -127,11 +127,11 @@ Sim-soundFIN na₁ na₂ R x y xRy =
 -- soundness wrt. infinite language
 
 Sim-soundINF :
-  {X₁ X₂ A : Set} → (na₁ : NA X₁ A) → (na₂ : NA X₂ A)
-  → (R : Simulation na₁ na₂)
+  {a : Level} {X₁ X₂ A : Set} → (na₁ : NA X₁ A) → (na₂ : NA X₂ A)
+  → (R : Simulation {a} na₁ na₂)
   → (x : X₁) → (y : X₂) → (x , y) ∈ (Simulation.𝑅 R)
   → INFAccLang na₁ x ⊆′ INFAccLang na₂ y
-Sim-soundINF {X₁} {X₂} {A} na₁ na₂ (aSim R R-sim) x y xRy
+Sim-soundINF {a} {X₁} {X₂} {A} na₁ na₂ (aSim R R-sim) x y xRy
   -- for any `as : INFWord A`,
   as
   -- if `as ∈ INFAccLang na₂ x`, with some

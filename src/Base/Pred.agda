@@ -1,7 +1,7 @@
 module Base.Pred where
 
 open import Level
-  using (Level)
+  using (Level; _⊔_)
   renaming (suc to lsuc)
 open import Data.Sum using (_⊎_)
 open import Relation.Unary
@@ -13,10 +13,10 @@ open import Relation.Binary.PropositionalEquality
 -- Pred with implicit level
 -- cf. https://github.com/ziman/agda-stuff/blob/master/dfa.agda
 
-Pred' : {ℓ : Level} -> (A : Set ℓ) -> Set (lsuc ℓ)
-Pred' {ℓ} A = Pred A ℓ
+Pred' : {ℓ : Level} -> (A : Set ℓ) -> {ℓ' : Level} → Set (ℓ ⊔ lsuc ℓ')
+Pred' {ℓ} A {ℓ'} = Pred {ℓ} A ℓ'
 
-_∪_ : {A : Set} -> (P Q : Pred' A) -> Pred' A
+_∪_ : {ℓ' : Level} → {A : Set} -> (P Q : Pred' A {ℓ'}) -> Pred' A
 P ∪ Q = λ x -> P x ⊎ Q x
 
 -- convenient syntax for equational reasoning
@@ -25,13 +25,13 @@ P ∪ Q = λ x -> P x ⊎ Q x
 
 infixr 2 step-∋ step-∈
 
-step-∋ : {A : Set} -> {x y : A} -> (P : Pred' A)
+step-∋ : {ℓ' : Level} → {A : Set} -> {x y : A} -> (P : Pred' A {ℓ'})
          -> (x ∈ P) -> (x ≡ y) -> (y ∈ P)
 step-∋ P x∈P x≡y = ≡subst P x≡y x∈P
 
 syntax step-∋ P P∋x x≡y = P ⟨ P∋x ⟩∋ x≡y
 
-step-∈ : {A : Set} -> {P Q : Pred' A} -> (x : A)
+step-∈ : {ℓ' : Level} → {A : Set} -> {P Q : Pred' A {ℓ'}} -> (x : A)
          -> (P ≡ Q) -> (x ∈ P) -> (x ∈ Q)
 step-∈ x refl x∈P = x∈P
 
