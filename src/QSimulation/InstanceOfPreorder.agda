@@ -8,7 +8,7 @@ open import Data.Bool.Properties
   renaming (≤-trans to →ᵇ-trans)
 open import Data.Nat
 open import Data.Nat.Properties
-  using (≤-reflexive; ≤-trans; ≤-step; m≤n⇒m≤1+n; _≟_; n≤0⇒n≡0)
+  using (≤-reflexive; ≤-trans; ≤-step; _≟_; n≤0⇒n≡0)
 open import Data.Integer
   using (ℤ; -[1+_]; 0ℤ)
   renaming (+_ to +ᶻ_; _≤_ to _≤ᶻ_; _+_ to _+ᶻ_)
@@ -32,6 +32,7 @@ open import Data.Unit.Base using (⊤; tt)
 open import Function.Base using (_∘′_)
 
 open import Base
+open import FinForWord using (m≤n⇒m≤1+n)
 open import Word
 open import NA
 open import QSimulation.Base

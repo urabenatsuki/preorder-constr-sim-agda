@@ -7,7 +7,7 @@ module QSimulation.Bounded
 
 open import Data.Nat
 open import Data.Nat.Properties
-    using (≤-trans; m≤n⇒m≤1+n; <-trans; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
+    using (≤-trans; <-trans; m≤n+m; m≤m+n; +-suc; <⇒≤; ≤-reflexive)
 open import Data.Nat.Induction
     using (<-rec)
 open import Data.Fin

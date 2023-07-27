@@ -1,9 +1,7 @@
 module FinForWord.Base where
 
 open import Data.Nat
-  using (ℕ; _+_; zero; suc; _≤_; _<_; ≤-pred)
-open import Data.Nat.Properties
-  using (m≤n⇒m≤1+n)
+  using (ℕ; _+_; zero; suc; _≤_; _<_; ≤-pred; s≤s; z≤n)
 open import Data.Fin
   using (Fin; inject₁; inject+; cast; toℕ; fromℕ)
   renaming (zero to zeroF; suc to sucF)
@@ -14,6 +12,10 @@ open import Data.Sum
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; cong)
 open Relation.Binary.PropositionalEquality.≡-Reasoning
+
+m≤n⇒m≤1+n : ∀ {m n : ℕ} → m ≤ n → m ≤ 1 + n
+m≤n⇒m≤1+n {zero} {n} z≤n = z≤n
+m≤n⇒m≤1+n {suc m} {.(suc _)} (s≤s m≤n) = s≤s (m≤n⇒m≤1+n m≤n)
 
 inject+' : ∀ {l} k → Fin l → Fin (k + l)
 inject+' {l} zero j = j
