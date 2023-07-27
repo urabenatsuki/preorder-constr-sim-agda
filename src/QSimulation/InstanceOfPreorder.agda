@@ -477,3 +477,18 @@ module Sum≥ where
   ≥+-is-closed-under-concat ((m , u) , (m' , u')) u-u' ((n , v) , (n' , v')) v-v' =
     lemma-≥+-is-closed-under-concat m n m' n' u v u' v' u-u' v-v'
 
+module Total (A : Set) where
+
+  total-carrier : Pred' ((FINWord A) × (FINWord A))
+  total-carrier _ = ⊤
+
+  total-refl : ∀ (w : FINWord A) → total-carrier (w , w)
+  total-refl w = tt
+
+  total-trans : ∀ (w w' w'' : FINWord A)
+    → total-carrier (w , w')
+    → total-carrier (w' , w'')
+    → total-carrier (w , w'')
+  total-trans w w' w'' _ _ = tt
+
+  total = aPreorder total-carrier total-refl total-trans

@@ -26,6 +26,7 @@ open import Relation.Binary.PropositionalEquality
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Data.Empty using (⊥)
 open import Data.Unit.Base using (⊤; tt)
+open import Level renaming (zero to lzero; suc to lsuc)
 
 open import Base
 open import Word
@@ -43,6 +44,13 @@ private
     → f (a , b , c)
     → f (a' , b' , c')
   lem-tr ≡refl ≡refl ≡refl f x = x
+
+
+1>0 : 1 > 0
+1>0 = s≤s z≤n
+
+2>0 : 2 > 0
+2>0 = s≤s z≤n
 
 module Fig-1-1 where
   data A : Set where
@@ -120,7 +128,7 @@ module Fig-1-1 where
     R (x₂ , y₀) = ⊥
     R (x₂ , y₂) = ⊤
 
-    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ ≡τ ] R x y
+    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ 1>0 ][ ≡τ ] R x y
     final x₀ y [x,y]∈R zero xs w p tr x₀∈F₁ (s≤s z≤n) with step-∋ acc₁ x₀∈F₁ (≡sym p)
     final x₀ y [x,y]∈R zero xs w p tr x₀∈F₁ (s≤s z≤n) | ()
     final x₁ y [x,y]∈R zero xs w p tr x₁∈F₁ (s≤s z≤n) with step-∋ acc₁ x₁∈F₁ (≡sym p)
@@ -130,7 +138,7 @@ module Fig-1-1 where
         tr' : (zero , emptyF) ∈ FINWord-from[ y₂ ]to[ y₂ ] na₂
         tr' = (λ y → y₂) , ≡refl , (λ ()) , ≡refl
 
-    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ ≡τ ] R x y
+    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ 1>0 ][ ≡τ ] R x y
     step x₀ y₀ tt xs w p tr with tr zeroF 
     step x₀ y₀ tt xs w p tr | tr[0] with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
     step x₀ y₀ tt xs w p tr | tt | x₀ | Addτ.τ | x₁ | [ w0≡τ ] | [ xs1≡x₁ ] =
@@ -253,7 +261,7 @@ module Fig-1-1 where
             w↾1i≡wi : ∀ i → w i ≡ (w ↾ s≤s (s≤s z≤n)) i
             w↾1i≡wi zeroF = ≡refl
 
-    1-bounded-≡τ-constrained-simulation : [ 1 ]-bounded-[ ≡τ ]-constrained-simulation 
+    1-bounded-≡τ-constrained-simulation : [ 1 ][ 1>0 ]-bounded-[ ≡τ ]-constrained-simulation lzero
     1-bounded-≡τ-constrained-simulation = aBoundedConstrainedSimulation R final step
 
     open import QSimulation.Soundness X Y A+τ na₁ na₂
@@ -296,7 +304,7 @@ module Fig-1-1 where
       1<3 : 1 < 3
       1<3 = s≤s (s≤s z≤n)
 
-    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ ≡τ ] R x y
+    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ 2>0 ][ ≡τ ] R x y
     final x₀ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) with step-∋ acc₁ last[xs]∈F₁ (≡sym p)
     final x₀ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) | ()
     final x₁ y [x,y]∈R .zero xs w p tr last[xs]∈F₁ (s≤s z≤n) with step-∋ acc₁ last[xs]∈F₁ (≡sym p)
@@ -318,7 +326,7 @@ module Fig-1-1 where
     final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] with lem-tr (≡sym p) p'' p' tr₁ (tr zeroF)
     final x₂ y₂ tt .1 xs w p tr tt (s≤s (s≤s z≤n)) | x₂ | [ p' ] | Addτ.τ | [ p'' ] | ()
 
-    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ ≡τ ] R x y
+    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ 2>0 ][ ≡τ ] R x y
     step x₀ y₀ tt xs w p tr with xs zeroF | w zeroF | xs (sucF zeroF) | w (sucF zeroF) | xs (sucF (sucF zeroF)) | tr zeroF | tr (sucF zeroF)
       | inspect xs zeroF | inspect w zeroF | inspect xs (sucF zeroF) | inspect w (sucF zeroF) | inspect xs (sucF (sucF zeroF))
     step x₀ y₀ tt xs w p tr | x₀ | τ | x₁ | τ | x₂ | tt | tt | [ xs0 ] | [ w0 ] | [ xs1 ] | [ w1 ] | [ xs2 ] =
@@ -382,7 +390,7 @@ module Fig-1-1 where
           (inj 1 (w ↾ 1<3) , inj 1 [a'])
           ∎
 
-    2-bounded-≡τ-constrained-simulation : [ 2 ]-bounded-[ ≡τ ]-constrained-simulation 
+    2-bounded-≡τ-constrained-simulation : [ 2 ][ 2>0 ]-bounded-[ ≡τ ]-constrained-simulation lzero
     2-bounded-≡τ-constrained-simulation = aBoundedConstrainedSimulation R final step
 
     -- R is not a 1-bounded ≡τ-constrained simulation
@@ -394,7 +402,7 @@ module Fig-1-1 where
       [x₀x₁] : FinWord 2 X
       [x₀x₁] = λ { zeroF → x₀ ; (sucF zeroF) → x₁}
     
-    ¬step1 : ¬ (∀ x y → (x , y) ∈ R → Step[ 1 ][ ≡τ ] R x y)
+    ¬step1 : ¬ (∀ x y → (x , y) ∈ R → Step[ 1 ][ 1>0 ][ ≡τ ] R x y)
     ¬step1 1-bounded-step with 1-bounded-step x₀ y₀ tt [x₀x₁] [τ] ≡refl (λ {zeroF → tt})
     ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ with ¬k≡0 ≡refl
     ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ | ()
@@ -468,12 +476,12 @@ module Fig-1-2 where
     R (x₀ , y₂) = ⊥
     R (x₂ , y₂) = ⊤
 
-    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ ⊑substr ] R x y
+    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ 1>0 ][ ⊑substr ] R x y
     final .(xs zeroF) y [x,y]∈R zero xs w ≡refl tr lastxs∈F₁ (s≤s z≤n) with xs zeroF
     final .(xs zeroF) y₂ [x,y]∈R zero xs w ≡refl tr lastxs∈F₁ (s≤s z≤n) | x₂ =
       ((0 , λ ()) , y₂ , ((λ n → n) , (λ ()) , (λ ())) , ((λ x → y₂) , ≡refl , (λ ()) , ≡refl) , tt)
 
-    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ ⊑substr ] R x y
+    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ 1>0 ][ ⊑substr ] R x y
     step .(xs zeroF) y [x,y]∈R xs w ≡refl tr with tr zeroF 
     step .(xs zeroF) y [x,y]∈R xs w ≡refl tr | tr0 with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
     step .(xs zeroF) y₀ [x,y]∈R xs w ≡refl tr | tr0 | x₀ | a | x₂ | [ p ] | [ q ] =
@@ -611,7 +619,7 @@ module Fig-1-3 where
     R (x₂ , y₁) = ⊥
     R (x₂ , y₂) = ⊤
 
-    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ ⊆* ] R x y
+    final : ∀ x y → (x , y) ∈ R → Final[ 1 ][ 1>0 ][ ⊆* ] R x y
     final .(xs zeroF) y [x,y]∈R zero xs w ≡refl tr xs0∈F₁ (s≤s z≤n) with xs zeroF
     final .(xs zeroF) y₂ [x,y]∈R zero xs w ≡refl tr tt (s≤s z≤n) | x₂ =
       ((0 , λ ()) , y₂ , (λ ()) , ((λ { zeroF → y₂ }) , ≡refl , (λ ()) , ≡refl) ,  tt)
@@ -620,7 +628,7 @@ module Fig-1-3 where
     p→ᵇtrue {false} = f→ᵇt
     p→ᵇtrue {true} = b→ᵇb
     
-    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ ⊆* ] R x y
+    step : ∀ x y → (x , y) ∈ R → Step[ 1 ][ 1>0 ][ ⊆* ] R x y
     step x y [x,y]∈R xs w ≡refl tr with tr zeroF 
     step x y [x,y]∈R xs w ≡refl tr | tr0 with xs zeroF | w zeroF | xs (sucF zeroF) | inspect w zeroF | inspect xs (sucF zeroF)
     step .(xs zeroF) y₀ [x,y]∈R xs w ≡refl tr | tr0 | x₀ | .(w zeroF) | x₁ | [ ≡refl ] | [ _ ] =
@@ -695,7 +703,7 @@ module Fig-1-3 where
         [lastxs,lastys]∈R : (xs (fromℕ< (s≤s (s≤s z≤n))) , y₂) ∈ R
         [lastxs,lastys]∈R with xs (fromℕ< (s≤s (s≤s z≤n)))
         [lastxs,lastys]∈R | x₂ = tt
-    1-bounded-⊆*-constrained-simulation : [ 1 ]-bounded-[ ⊆* ]-constrained-simulation 
+    1-bounded-⊆*-constrained-simulation : [ 1 ][ 1>0 ]-bounded-[ ⊆* ]-constrained-simulation lzero
     1-bounded-⊆*-constrained-simulation = aBoundedConstrainedSimulation R final step
 
     open import QSimulation.Soundness X Y PA na₁ na₂
@@ -717,7 +725,7 @@ module Fig-1-3 where
     R (x₂ , y₁) = ⊥
     R (x₂ , y₂) = ⊤
 
-    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ ⊆* ] R x y
+    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ 2>0 ][ ⊆* ] R x y
     final x₀ y₀ tt zero xs w x₀≡xs0 tr xs0∈F₁ (s≤s z≤n) with step-∋ acc₁ xs0∈F₁ (≡sym x₀≡xs0)
     final x₀ y₀ tt zero xs w x₀≡xs0 tr xs0∈F₁ (s≤s z≤n) | ()
     final x₁ y₀ () zero xs w x₁≡xs0 tr xs0∈F₁ (s≤s z≤n)
@@ -744,7 +752,7 @@ module Fig-1-3 where
         w0⊆[a,b] b | false = f→ᵇt
     final x y [x,y]∈R (suc (suc n)) xs w x≡xs0 tr last[xs]∈F₁ (s≤s (s≤s ()))
     
-    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ ⊆* ] R x y
+    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ 2>0 ][ ⊆* ] R x y
     step x₀ y₀ tt xs w x₀≡xs0 tr with xs zeroF | xs (sucF zeroF) | xs (sucF (sucF zeroF)) | tr zeroF | tr (sucF zeroF)
       | inspect xs zeroF | inspect xs (sucF zeroF) | inspect xs (sucF (sucF zeroF))
     step x₀ y₀ tt xs w x₀≡xs0 tr | x₀ | x₁ | x₂ | tr0 | tr1 | [ xs0≡x₀ ] | [ xs1≡x₁ ] | [ xs2≡x₂ ] =
@@ -819,7 +827,7 @@ module Fig-1-3 where
         [xs2,y₂]∈R with xs (fromℕ< (s≤s (s≤s (s≤s z≤n))))
         [xs2,y₂]∈R | x₂ = tt
 
-    2-bounded-⊆*-constrained-simulation : [ 2 ]-bounded-[ ⊆* ]-constrained-simulation 
+    2-bounded-⊆*-constrained-simulation : [ 2 ][ 2>0 ]-bounded-[ ⊆* ]-constrained-simulation lzero
     2-bounded-⊆*-constrained-simulation = aBoundedConstrainedSimulation R final step
 
     -- R is not a 1-bounded ≡τ-constrained simulation
@@ -827,7 +835,7 @@ module Fig-1-3 where
       [x₀x₁] : FinWord 2 X
       [x₀x₁] = λ { zeroF → x₀ ; (sucF zeroF) → x₁}
     
-    ¬step1 : ¬ (∀ x y → (x , y) ∈ R → Step[ 1 ][ ⊆* ] R x y)
+    ¬step1 : ¬ (∀ x y → (x , y) ∈ R → Step[ 1 ][ 1>0 ][ ⊆* ] R x y)
     ¬step1 1-bounded-step with 1-bounded-step x₀ y₀ tt [x₀x₁] (λ {zeroF → [a]}) ≡refl (λ {zeroF → ≡refl})
     ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ with ¬k≡0 ≡refl
     ¬step1 1-bounded-step | .zero , ¬k≡0 , s≤s z≤n , _ | ()
@@ -917,7 +925,7 @@ module Fig-1-4 where
     R (x₂ , y₁) = ⊥
     R (x₂ , y₂) = ⊤
 
-    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ ≥+ ] R x y
+    final : ∀ x y → (x , y) ∈ R → Final[ 2 ][ 2>0 ][ ≥+ ] R x y
     final x₀ y₀ tt zero xs w x₀≡xs0 tr xs0∈F₁ (s≤s z≤n) with step-∋ acc₁ xs0∈F₁ (≡sym x₀≡xs0)
     final x₀ y₀ tt zero xs w x₀≡xs0 tr xs0∈F₁ (s≤s z≤n) | ()
     final x₀ y₀ tt (suc zero) xs w x₀≡xs0 tr tail[xs]∈F₁ (s≤s (s≤s z≤n)) with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF | tr zeroF
@@ -938,7 +946,7 @@ module Fig-1-4 where
     final x₂ y₂ tt (suc zero) xs w x₂≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | inspect w zeroF | tr zeroF
     final x₂ y₂ tt (suc zero) xs w x₂≡xs0 tr xs1∈F₁ (s≤s (s≤s z≤n)) | x₂ | [ xs0≡x₂ ] | x | [ _ ] | n | [ _ ] | ()
 
-    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ ≥+ ] R x y
+    step : ∀ x y → (x , y) ∈ R → Step[ 2 ][ 2>0 ][ ≥+ ] R x y
     step x₀ y₀ tt xs w x≡xs0 tr
       with xs zeroF | inspect xs zeroF | w zeroF | inspect w zeroF
       | xs (sucF zeroF) | inspect xs (sucF zeroF) | w (sucF zeroF) | inspect w (sucF zeroF)
@@ -996,6 +1004,236 @@ module Fig-1-4 where
     step x₂ y₂ tt xs w ≡refl tr | x₂ | [ xs0≡ ] | w0 | [ w0≡ ] | x₁ | [ xs1≡ ] | ()
     step x₂ y₂ tt xs w ≡refl tr | x₂ | [ xs0≡ ] | w0 | [ w0≡ ] | x₂ | [ xs1≡ ] | ()
     
-    2-bounded-≥+-constrained-simulation : [ 2 ]-bounded-[ ≥+ ]-constrained-simulation 
+    2-bounded-≥+-constrained-simulation : [ 2 ][ 2>0 ]-bounded-[ ≥+ ]-constrained-simulation lzero
     2-bounded-≥+-constrained-simulation = aBoundedConstrainedSimulation R final step
 
+module No-closedness-under-composition where
+  data A : Set where
+    τ : A
+  open Total A
+  
+  module NAX where
+    data X : Set where
+      x₀ : X
+      
+      x₁ : X
+      
+      x₂₁ : X
+      x₂₂ : X
+      
+      x₃₁ : X
+      x₃₂ : X
+      x₃₃ : X
+      x₃₄ : X
+  
+    trX : Pred' (X × A × X)
+    trX (x₀ , τ , x₁) = ⊤
+    trX (x₁ , τ , x₂₁) = ⊤
+    trX (x₁ , τ , x₂₂) = ⊤
+    trX (x₂₁ , τ , x₃₁) = ⊤
+    trX (x₂₁ , τ , x₃₂) = ⊤
+    trX (x₂₂ , τ , x₃₃) = ⊤
+    trX (x₂₂ , τ , x₃₄) = ⊤
+    trX (_ , τ , _) = ⊥
+
+    accX : Pred' X
+    accX _ = ⊥
+  
+    initX : Pred' X
+    initX x₀ = ⊤
+    initX _ = ⊥
+
+    naX : NA X A
+    naX = anNA trX initX accX
+  open NAX
+
+  module NAY where
+    data Y : Set where
+      y₀ : Y
+
+      y₁₁ : Y
+      y₁₂ : Y
+
+      y₂₁ : Y
+      y₂₂ : Y
+      y₂₃ : Y
+      y₂₄ : Y
+
+    trY : Pred' (Y × A × Y)
+    trY (y₀ , τ , y₁₁) = ⊤
+    trY (y₀ , τ , y₁₂) = ⊤
+    trY (y₁₁ , τ , y₂₁) = ⊤
+    trY (y₁₁ , τ , y₂₂) = ⊤
+    trY (y₁₂ , τ , y₂₃) = ⊤
+    trY (y₁₂ , τ , y₂₄) = ⊤
+    trY (_ , τ , _) = ⊥
+
+    accY : Pred' Y
+    accY _ = ⊥
+
+    initY : Pred' Y
+    initY y₀ = ⊤
+    initY _ = ⊥
+
+    naY : NA Y A
+    naY = anNA trY initY accY
+  open NAY
+
+  module NAZ where
+    data Z : Set where
+      z₀ : Z
+
+      z₁₁ : Z
+      z₁₂ : Z
+      z₁₃ : Z
+      z₁₄ : Z
+    
+    trZ : Pred' (Z × A × Z)
+    trZ (z₀ , τ , z₁₁) = ⊤
+    trZ (z₀ , τ , z₁₂) = ⊤
+    trZ (z₀ , τ , z₁₃) = ⊤
+    trZ (z₀ , τ , z₁₄) = ⊤
+    trZ (_ , τ , _) = ⊥
+
+    accZ : Pred' Z
+    accZ _ = ⊥
+
+    initZ : Pred' Z
+    initZ z₀ = ⊤
+    initZ _ = ⊥
+
+    naZ : NA Z A
+    naZ = anNA trZ initZ accZ
+  open NAZ
+
+
+  3≤3 : 3 ≤ 3
+  3≤3 = s≤s (s≤s (s≤s z≤n))
+
+  module 2BoundedXY where
+    open QSimulationBase A X Y naX naY
+
+    RXY : Pred' (X × Y)
+    RXY (x₀ , y₀) = ⊤
+    RXY (x₂₁ , y₁₁) = ⊤
+    RXY (x₂₂ , y₁₂) = ⊤
+    RXY (x₃₁ , y₂₁) = ⊤
+    RXY (x₃₂ , y₂₂) = ⊤
+    RXY (x₃₃ , y₂₃) = ⊤
+    RXY (x₃₄ , y₂₄) = ⊤
+    RXY _ = ⊥
+
+    final : ∀ x y → (x , y) ∈ RXY → Final[ 2 ][ 2>0 ][ total ] RXY x y
+    final x y [x,y]∈R n xs w x≡xs0 tr () n<2
+
+    step : ∀ x y → (x , y) ∈ RXY → Step[ 2 ][ 2>0 ][ total ] RXY x y
+    step x₀ y₀ tt xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | xs (sucF (sucF zeroF)) | inspect xs (sucF (sucF zeroF)) | w zeroF | w (sucF zeroF) | tr zeroF | tr (sucF zeroF)
+    step x₀ y₀ tt xs w x≡xs0 tr | x₀ | [ xs0≡ ] | x₁ | [ xs1≡ ] | x₂₁ | [ xs2≡ ] | τ | τ | tt | tt =
+      (2 , (λ ()) , 3≤3 ,  w' , y₁₁ , tt , (ys , ≡refl , (λ { zeroF → tt }) , ≡refl) , [xs2,y₁₁]∈R)
+      where
+        w' : FINWord A
+        w' = (1 , (λ {zeroF → τ }))
+
+        ys : Fin 2 → Y
+        ys zeroF = y₀
+        ys (sucF n) = y₁₁
+
+        [xs2,y₁₁]∈R : (xs (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , y₁₁) ∈ RXY
+        [xs2,y₁₁]∈R = step-∋ RXY tt (≡cong (_, y₁₁) (≡sym xs2≡))
+    step x₀ y₀ tt xs w x≡xs0 tr | x₀ | [ xs0≡ ] | x₁ | [ xs1≡ ] | x₂₂ | [ xs2≡ ] | τ | τ | tt | tt =
+      (2 , (λ ()) , 3≤3 ,  w' , y₁₂ , tt , (ys , ≡refl , (λ { zeroF → tt }) , ≡refl) , [xs2,y₁₁]∈R)
+      where
+        w' : FINWord A
+        w' = (1 , (λ {zeroF → τ }))
+
+        ys : Fin 2 → Y
+        ys zeroF = y₀
+        ys (sucF n) = y₁₂
+
+        [xs2,y₁₁]∈R : (xs (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , y₁₂) ∈ RXY
+        [xs2,y₁₁]∈R = step-∋ RXY tt (≡cong (_, y₁₂) (≡sym xs2≡))
+    step x₂₁ y a xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | xs (sucF (sucF zeroF)) | inspect xs (sucF (sucF zeroF)) | w zeroF | w (sucF zeroF) | tr zeroF | tr (sucF zeroF)
+    step x₂₁ y a xs w x≡xs0 tr | x₂₁ | [ p ] | x₃₁ | [ q ] | x | [ r ] | τ | τ | tt | ()
+    step x₂₁ y a xs w x≡xs0 tr | x₂₁ | [ p ] | x₃₂ | [ q ] | x | [ r ] | τ | τ | tt | ()
+    step x₂₂ y a xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | xs (sucF (sucF zeroF)) | inspect xs (sucF (sucF zeroF)) | w zeroF | w (sucF zeroF) | tr zeroF | tr (sucF zeroF)
+    step x₂₂ y a xs w x≡xs0 tr | x₂₂ | [ p ] | x₃₃ | [ q ] | x | [ r ] | τ | τ | tt | ()
+    step x₂₂ y a xs w x≡xs0 tr | x₂₂ | [ p ] | x₃₄ | [ q ] | x | [ r ] | τ | τ | tt | ()
+    step x₃₁ y a xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | tr zeroF
+    step x₃₁ y a xs w x≡xs0 tr | x₃₁ | [ p ] | x | [ q ] | τ | ()
+    step x₃₂ y a xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | tr zeroF
+    step x₃₂ y a xs w x≡xs0 tr | x₃₂ | [ p ] | x | [ q ] | τ | ()
+    step x₃₃ y a xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | tr zeroF
+    step x₃₃ y a xs w x≡xs0 tr | x₃₃ | [ p ] | x | [ q ] | τ | ()
+    step x₃₄ y a xs w x≡xs0 tr with xs zeroF | inspect xs zeroF | xs (sucF zeroF) | inspect xs (sucF zeroF) | w zeroF | tr zeroF
+    step x₃₄ y a xs w x≡xs0 tr | x₃₄ | [ p ] | x | [ q ] | τ | ()
+    
+    2-bounded-tot-constrained-simulation : [ 2 ][ 2>0 ]-bounded-[ total ]-constrained-simulation lzero
+    2-bounded-tot-constrained-simulation = aBoundedConstrainedSimulation RXY final step
+
+  module 2BoundedYZ where
+    open QSimulationBase A Y Z naY naZ
+
+    RYZ : Pred' (Y × Z)
+    RYZ (y₀ , z₀) = ⊤
+    RYZ (y₂₁ , z₁₁) = ⊤
+    RYZ (y₂₂ , z₁₂) = ⊤
+    RYZ (y₂₃ , z₁₃) = ⊤
+    RYZ (y₂₄ , z₁₄) = ⊤
+    RYZ _ = ⊥
+
+    final : ∀ y z → (y , z) ∈ RYZ → Final[ 2 ][ 2>0 ][ total ] RYZ y z
+    final y z [y,z]∈R n ys w y≡ys0 tr () n<2
+
+    step : ∀ y z → (y , z) ∈ RYZ → Step[ 2 ][ 2>0 ][ total ] RYZ y z
+    step y₀ z₀ a ys w y≡ys0 tr with ys zeroF | inspect ys zeroF | ys (sucF zeroF) | inspect ys (sucF zeroF) | ys (sucF (sucF zeroF)) | inspect ys (sucF (sucF zeroF)) | w zeroF | w (sucF zeroF) | tr zeroF | tr (sucF zeroF)
+    step y₀ z₀ a ys w y≡ys0 tr | y₀ | [ ys0≡ ] | y₁₁ | [ xs1≡ ] | y₂₁ | [ xs2≡ ] | τ | τ | tt | tt =
+      (2 , (λ ()) , 3≤3 ,  (1 , (λ {zeroF → τ })) , z₁₁ , tt , ((λ {zeroF → z₀ ; (sucF zeroF) → z₁₁} ) , ≡refl , (λ { zeroF → tt }) , ≡refl) , [ys2,z₁₁]∈R)
+      where
+        [ys2,z₁₁]∈R : (ys (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , z₁₁) ∈ RYZ
+        [ys2,z₁₁]∈R = step-∋ RYZ tt (≡cong (_, z₁₁) (≡sym xs2≡))
+    step y₀ z₀ a ys w y≡ys0 tr | y₀ | [ ys0≡ ] | y₁₁ | [ xs1≡ ] | y₂₂ | [ xs2≡ ] | τ | τ | tt | tt =
+      (2 , (λ ()) , 3≤3 ,  (1 , (λ {zeroF → τ })) , z₁₂ , tt , ((λ {zeroF → z₀ ; (sucF zeroF) → z₁₂} ) , ≡refl , (λ { zeroF → tt }) , ≡refl) , [ys2,z₁₂]∈R)
+      where
+        [ys2,z₁₂]∈R : (ys (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , z₁₂) ∈ RYZ
+        [ys2,z₁₂]∈R = step-∋ RYZ tt (≡cong (_, z₁₂) (≡sym xs2≡))
+    step y₀ z₀ a ys w y≡ys0 tr | y₀ | [ ys0≡ ] | y₁₂ | [ xs1≡ ] | y₂₃ | [ xs2≡ ] | τ | τ | tt | tt =
+      (2 , (λ ()) , 3≤3 ,  (1 , (λ {zeroF → τ })) , z₁₃ , tt , ((λ {zeroF → z₀ ; (sucF zeroF) → z₁₃} ) , ≡refl , (λ { zeroF → tt }) , ≡refl) , [ys2,z₁₃]∈R)
+      where
+        [ys2,z₁₃]∈R : (ys (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , z₁₃) ∈ RYZ
+        [ys2,z₁₃]∈R = step-∋ RYZ tt (≡cong (_, z₁₃) (≡sym xs2≡))
+    step y₀ z₀ a ys w y≡ys0 tr | y₀ | [ ys0≡ ] | y₁₂ | [ xs1≡ ] | y₂₄ | [ xs2≡ ] | τ | τ | tt | tt =
+      (2 , (λ ()) , 3≤3 ,  (1 , (λ {zeroF → τ })) , z₁₄ , tt , ((λ {zeroF → z₀ ; (sucF zeroF) → z₁₄} ) , ≡refl , (λ { zeroF → tt }) , ≡refl) , [ys2,z₁₄]∈R)
+      where
+        [ys2,z₁₄]∈R : (ys (fromℕ< (s≤s (s≤s (s≤s z≤n)))) , z₁₄) ∈ RYZ
+        [ys2,z₁₄]∈R = step-∋ RYZ tt (≡cong (_, z₁₄) (≡sym xs2≡))
+    step y₂₁ z a ys w y≡ys0 tr with ys zeroF | inspect ys zeroF | ys (sucF zeroF) | inspect ys (sucF zeroF) | w zeroF | tr zeroF
+    step y₂₁ z a ys w y≡ys0 tr | y₂₁ | [ p ] | y | [ q ] | τ | ()
+    step y₂₂ z a ys w y≡ys0 tr with ys zeroF | inspect ys zeroF | ys (sucF zeroF) | inspect ys (sucF zeroF) | w zeroF | tr zeroF
+    step y₂₂ z a ys w y≡ys0 tr | y₂₂ | [ p ] | y | [ q ] | τ | ()
+    step y₂₃ z a ys w y≡ys0 tr with ys zeroF | inspect ys zeroF | ys (sucF zeroF) | inspect ys (sucF zeroF) | w zeroF | tr zeroF
+    step y₂₃ z a ys w y≡ys0 tr | y₂₃ | [ p ] | y | [ q ] | τ | ()
+    step y₂₄ z a ys w y≡ys0 tr with ys zeroF | inspect ys zeroF | ys (sucF zeroF) | inspect ys (sucF zeroF) | w zeroF | tr zeroF
+    step y₂₄ z a ys w y≡ys0 tr | y₂₄ | [ p ] | y | [ q ] | τ | ()
+
+    2-bounded-tot-constrained-simulation : [ 2 ][ 2>0 ]-bounded-[ total ]-constrained-simulation lzero
+    2-bounded-tot-constrained-simulation = aBoundedConstrainedSimulation RYZ final step
+  
+  module Not2BoundedXZ where
+    open QSimulationBase A X Z naX naZ
+
+    RXZ : Pred' (X × Z)
+    RXZ = 2BoundedXY.RXY ∘ᵣ 2BoundedYZ.RYZ
+
+    no-step2 : (∀ x z → (x , z) ∈ RXZ → Step[ 2 ][ 2>0 ][ total ] RXZ x z) → ⊥
+    no-step2 step2 with step2 x₀ z₀ (y₀ , tt , tt)
+    no-step2 step2 | step2[x₀,z₀] with step2[x₀,z₀] (λ {zeroF → x₀ ; (sucF zeroF) → x₁ ; (sucF (sucF zeroF)) → x₂₁}) (λ {zeroF → τ ; (sucF zeroF) → τ}) ≡refl (λ {zeroF → tt ; (sucF zeroF) → tt})
+    no-step2 step2 | _ | .zero , knon0 , s≤s z≤n , w' , z₀ , tt , tr , y₀ , tt , tt = knon0 ≡refl
+    no-step2 step2 | _ | .2 , knon0 , s≤s (s≤s (s≤s z≤n)) , w' , z₀ , tt , tr , y₀ , () , tt
+    no-step2 step2 | _ | .zero , knon0 , s≤s z≤n , w' , z₁₁ , tt , tr , y , a , b = knon0 ≡refl
+    no-step2 step2 | _ | .2 , knon0 , s≤s (s≤s (s≤s z≤n)) , w' , z₁₁ , tt , tr , y₂₁ , () , tt
+    no-step2 step2 | _ | .zero , knon0 , s≤s z≤n , w' , z₁₂ , tt , tr , y , a , b = knon0 ≡refl
+    no-step2 step2 | _ | .2 , knon0 , s≤s (s≤s (s≤s z≤n)) , w' , z₁₂ , tt , tr , y₂₂ , () , tt
+    no-step2 step2 | _ | .zero , knon0 , s≤s z≤n , w' , z₁₃ , tt , tr , y , a , b = knon0 ≡refl
+    no-step2 step2 | _ | .2 , knon0 , s≤s (s≤s (s≤s z≤n)) , w' , z₁₃ , tt , tr , y₂₃ , () , tt
+    no-step2 step2 | _ | .zero , knon0 , s≤s z≤n , w' , z₁₄ , tt , tr , y , a , b = knon0 ≡refl
+    no-step2 step2 | _ | .2 , knon0 , s≤s (s≤s (s≤s z≤n)) , w' , z₁₄ , tt , tr , y₂₄ , () , tt
